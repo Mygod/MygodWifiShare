@@ -1,0 +1,281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="About" xml:space="preserve">
+    <value>{0} 由 {1} 于 {2} 为您制作。感谢使用！</value>
+    <comment>关于文本。0为程序名，1为制作者，2为制作时间。</comment>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>一、第一次使用：
+0. 启动本软件。
+1. 输入T，如看到“当前设置自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
+2. 输入S对无线网络名和密码进行设置。
+3. 输入B启动无线网络共享。
+4. 如果跳出网络选择，请选择家庭网络或工作网络。
+5. 打开“控制面板 - 网络和 Internet - 网络和共享中心 - 更改适配器设置”，重命名有“Microsoft Virtual Wifi Miniport Adapter”字样的无线网络连接为“无线网络共享”（或其他名字）。
+6. 右击你当前的上网连接（如“本地连接”“宽带连接”“无线网络连接”等）- 属性 - 共享，选中“允许其他用户通过此计算机的 Internet 连接来连接(N)”与“允许其他网络用户控制或禁用共享的 Internet 连接(O)”，家庭网络连接(H)中选择“无线网络共享”（或者你刚刚重命名的名字）。
+7. 如果上一步成功则忽视下面步骤。如果没有成功，请回到“更改适配器设置”右击“无线网络共享”，点击属性，点击“Internet 协议版本 4 (TCP/IPv4)”，点击属性，点击使用下面的 IP 地址，然后分别填写：
+192.168.137.1
+255.255.255.0
+（空着不填）
+8.8.8.8
+8.8.4.4
+然后点击确定，确定，再重试第六步。
+
+二、再次使用：
+0. 启动本软件。
+1. 输入B启动无线网络共享。
+
+三、开机自动启动无线网络共享
+0. 启动本软件。
+1. 输入T，如看到“当前设置自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
+2. 输入Y修改成不自动启动无线网络共享。
+
+四、开机不自动启动无线网络共享
+0. 启动本软件。
+1. 输入T，如看到“当前设置不自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
+2. 输入Y修改成自动启动无线网络共享。
+
+五、可能碰到的问题：
+①执行 一.2 时出现“无法启动承载网络。组或资源的状态不是执行请求操作的正确状态。”字样：
+　这说明您的无线网卡正在被使用，可以尝试以下步骤解决问题。
+　　1. 点击右下角的“网络与共享中心”，如果当前连接到某无线网络，则选中当前连接到的无线网络，点击“断开”并执行第4步，否则执行第3步。
+　　2. 打开“控制面板 - 网络和 Internet - 网络和共享中心 - 更改适配器设置”，禁用除了你当前的上网连接（如“本地连接”“宽带连接”）以外的所有连接并重新启用再试。
+　　3. 再次执行 一.2，若问题继续，请执行第3步。
+
+②原来可以使用的网络共享时间长后无法继续使用：
+　　1. 输入R重启共享。
+　　2. 若问题持续，输入D深度重启共享。
+    3. 若问题持续，输入C关闭后再次输入D深度重启。
+    4. 若问题持续，重启电脑。</value>
+    <comment>帮助。</comment>
+  </data>
+  <data name="SettingsStep1" xml:space="preserve">
+    <value>欢迎进入设置界面，输入您的新的设置，为空则不修改。</value>
+  </data>
+  <data name="SettingsStep2" xml:space="preserve">
+    <value>旧的无线网络名：</value>
+  </data>
+  <data name="SettingsStep3" xml:space="preserve">
+    <value>新的无线网络名：</value>
+  </data>
+  <data name="SettingsStep4" xml:space="preserve">
+    <value>旧的无线密码：</value>
+  </data>
+  <data name="SettingsStep5" xml:space="preserve">
+    <value>新的无线密码：</value>
+  </data>
+  <data name="SettingsStep6" xml:space="preserve">
+    <value>修改完毕，是否要立即生效？(Y生效，其他键不生效)</value>
+  </data>
+  <data name="OSError" xml:space="preserve">
+    <value>本程序必须在 Windows 7 或更高版本的 Windows 下运行！
+按任意键退出此程序。</value>
+    <comment>当OS不是Windows 7或更高版本时的提示。</comment>
+  </data>
+  <data name="IsAutoRun" xml:space="preserve">
+    <value>当前设置{0}自动启动无线网络共享。</value>
+    <comment>输出是否自动启动无线网络共享。若不自动启动，0将会被替换为Not。</comment>
+  </data>
+  <data name="StartUpName" xml:space="preserve">
+    <value>启动无线网络共享</value>
+    <comment>“启动”菜单中快捷方式名。</comment>
+  </data>
+  <data name="AskChange" xml:space="preserve">
+    <value>修改吗？(Y确定，其他取消)</value>
+    <comment>询问是否要修改。</comment>
+  </data>
+  <data name="StartUpDescription" xml:space="preserve">
+    <value>Mygod为您自动启动无线网络共享。</value>
+    <comment>“启动”菜单中快捷方式的注释。</comment>
+  </data>
+  <data name="ChangeAutoRunFinish" xml:space="preserve">
+    <value>修改自动运行完成。</value>
+  </data>
+  <data name="UpdateContent" xml:space="preserve">
+    <value>改进帮助。</value>
+    <comment>显示更新的内容。</comment>
+  </data>
+  <data name="Not" xml:space="preserve">
+    <value>不</value>
+    <comment>替换用文本“不”。</comment>
+  </data>
+  <data name="IsSupport" xml:space="preserve">
+    <value>您的网卡{0}支持无线网络共享。</value>
+    <comment>输出是否支持无线网络共享。若不支持，0将会被替换为Not。</comment>
+  </data>
+  <data name="Producer" xml:space="preserve">
+    <value>Mygod</value>
+  </data>
+  <data name="SupportLength" xml:space="preserve">
+    <value>1</value>
+    <comment>“支持的承载网络”后的长度。如“是”为1。</comment>
+  </data>
+  <data name="SupportTheBearerNetwork" xml:space="preserve">
+    <value>支持的承载网络</value>
+    <comment>运行命令"netsh netsh wlan show all"中“支持的承载网络”显示的文本。</comment>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+    <comment>替换“支持的承载网络  : 是”中的“是”。</comment>
+  </data>
+  <data name="ProgramNeeds" xml:space="preserve">
+    <value>{0} 需求配置：
+ ※ 安装 .NET Framework 4 Client Profile
+ ※ Windows 7 或更高版本的 Windows
+ ※ 连接到 Internet
+ ※ 有支持无线网络共享（按X检测）的 Wi-fi 无线网络适配器</value>
+    <comment>程序需求配置。</comment>
+  </data>
+  <data name="DefaultKey" xml:space="preserve">
+    <value>AwesomePassword</value>
+    <comment>若无线网络密码未设置时的默认密码。</comment>
+  </data>
+  <data name="DefaultSSID" xml:space="preserve">
+    <value>Mygod Hotspot</value>
+    <comment>若无线网络名未设置时的默认名。</comment>
+  </data>
+  <data name="WelcomeToUse" xml:space="preserve">
+    <value>欢迎使用 {0}！
+可用操作：A关于，S设置共享SSID与密码，B启动共享，C关闭共享，X检查网卡是否支持共享无线网络，R重启共享，D深度重启共享，U查看本次更新内容，T设置开机时自动运行，H帮助，输入其他退出
+请输入操作：</value>
+    <comment>欢迎使用。</comment>
+  </data>
+  <data name="AutoNoSettings" xml:space="preserve">
+    <value>自动状态下拒绝设置！</value>
+  </data>
+  <data name="AutoNoCheckingSupport" xml:space="preserve">
+    <value>自动状态下拒绝检测！</value>
+  </data>
+  <data name="AutoNoSettingAutoRun" xml:space="preserve">
+    <value>自动状态下拒绝设置自动启动！</value>
+  </data>
+  <data name="AutoNoShowingHelp" xml:space="preserve">
+    <value>自动状态下拒绝显示帮助！</value>
+  </data>
+  <data name="ServiceError" xml:space="preserve">
+    <value>重启服务时出现错误：{0}</value>
+  </data>
+  <data name="StartingService" xml:space="preserve">
+    <value>正在启动服务 {0} ……</value>
+  </data>
+  <data name="StoppingService" xml:space="preserve">
+    <value>正在停止服务 {0} ……</value>
+  </data>
+</root>
