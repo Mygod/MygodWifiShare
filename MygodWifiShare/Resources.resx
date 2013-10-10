@@ -117,10 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="About" xml:space="preserve">
-    <value>{0} 由 {1} 于 {2} 为您制作。感谢使用！</value>
-    <comment>关于文本。0为程序名，1为制作者，2为制作时间。</comment>
-  </data>
   <data name="Help" xml:space="preserve">
     <value>一、第一次使用：
 0. 启动本软件。
@@ -202,7 +198,7 @@
     <comment>询问是否要修改。</comment>
   </data>
   <data name="StartUpDescription" xml:space="preserve">
-    <value>Mygod为您自动启动无线网络共享。</value>
+    <value>Mygod 为您自动启动无线网络共享。</value>
     <comment>“启动”菜单中快捷方式的注释。</comment>
   </data>
   <data name="ChangeAutoRunFinish" xml:space="preserve">
@@ -235,12 +231,12 @@
     <value>是</value>
     <comment>替换“支持的承载网络  : 是”中的“是”。</comment>
   </data>
-  <data name="ProgramNeeds" xml:space="preserve">
+  <data name="Requirement" xml:space="preserve">
     <value>{0} 需求配置：
  ※ 安装 .NET Framework 4 Client Profile
  ※ Windows 7 或更高版本的 Windows
  ※ 连接到 Internet
- ※ 有支持无线网络共享（按X检测）的 Wi-fi 无线网络适配器</value>
+ ※ 有支持无线网络共享（按 X 检测）的 Wi-fi 无线网络适配器</value>
     <comment>程序需求配置。</comment>
   </data>
   <data name="DefaultKey" xml:space="preserve">
@@ -253,7 +249,14 @@
   </data>
   <data name="WelcomeToUse" xml:space="preserve">
     <value>欢迎使用 {0}！
-可用操作：A关于，S设置共享SSID与密码，B启动共享，C关闭共享，X检查网卡是否支持共享无线网络，R重启共享，D深度重启共享，U查看本次更新内容，T设置开机时自动运行，H帮助，输入其他退出
+可用操作：
+    A 查看当前共享的设置与状态            B 启动共享
+    C 关闭共享                            D 深度重启共享
+    H 帮助                                K 刷新安全密钥 (用后需要再次启动共享)
+    Q 查看当前已连接的设备                R 重启共享
+    S 设置无线网络名 (SSID) 与密码        T 设置开机时自动运行
+    U 检查更新                            W 监视当前已连接的设备
+    X 检查网卡是否支持共享无线网络        输入其他退出
 请输入操作：</value>
     <comment>欢迎使用。</comment>
   </data>

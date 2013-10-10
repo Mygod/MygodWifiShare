@@ -61,15 +61,6 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
-        ///   查找类似 {0} 由 {1} 于 {2} 为您制作。感谢使用！ 的本地化字符串。
-        /// </summary>
-        internal static string About {
-            get {
-                return ResourceManager.GetString("About", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 修改吗？(Y确定，其他取消) 的本地化字符串。
         /// </summary>
         internal static string AskChange {
@@ -209,11 +200,11 @@ namespace Mygod.WifiShare {
         /// ※ 安装 .NET Framework 4 Client Profile
         /// ※ Windows 7 或更高版本的 Windows
         /// ※ 连接到 Internet
-        /// ※ 有支持无线网络共享（按X检测）的 Wi-fi 无线网络适配器 的本地化字符串。
+        /// ※ 有支持无线网络共享（按 X 检测）的 Wi-fi 无线网络适配器 的本地化字符串。
         /// </summary>
-        internal static string ProgramNeeds {
+        internal static string Requirement {
             get {
-                return ResourceManager.GetString("ProgramNeeds", resourceCulture);
+                return ResourceManager.GetString("Requirement", resourceCulture);
             }
         }
         
@@ -290,7 +281,7 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
-        ///   查找类似 Mygod为您自动启动无线网络共享。 的本地化字符串。
+        ///   查找类似 Mygod 为您自动启动无线网络共享。 的本地化字符串。
         /// </summary>
         internal static string StartUpDescription {
             get {
@@ -345,7 +336,14 @@ namespace Mygod.WifiShare {
         
         /// <summary>
         ///   查找类似 欢迎使用 {0}！
-        ///可用操作：A关于，S设置共享SSID与密码，B启动共享，C关闭共享，X检查网卡是否支持共享无线网络，R重启共享，D深度重启共享，U查看本次更新内容，T设置开机时自动运行，H帮助，输入其他退出
+        ///可用操作：
+        ///    A 查看当前共享的设置与状态            B 启动共享
+        ///    C 关闭共享                            D 深度重启共享
+        ///    H 帮助                                K 刷新安全密钥 (用后需要再次启动共享)
+        ///    Q 查看当前已连接的设备                R 重启共享
+        ///    S 设置无线网络名 (SSID) 与密码        T 设置开机时自动运行
+        ///    U 检查更新                            W 监视当前已连接的设备
+        ///    X 检查网卡是否支持共享无线网络        输入其他退出
         ///请输入操作： 的本地化字符串。
         /// </summary>
         internal static string WelcomeToUse {
