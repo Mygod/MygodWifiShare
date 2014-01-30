@@ -118,21 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Help" xml:space="preserve">
-    <value>一、第一次使用：
+    <value>一、第一次使用：（通常情况下在每台电脑上只需执行一次）
 0. 启动本软件。
-1. 输入T，如看到“当前设置自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
-2. 输入S对无线网络名和密码进行设置。
-3. 输入B启动无线网络共享。
-4. 如果跳出网络选择，请选择家庭网络或工作网络。
-5. 打开“控制面板 - 网络和 Internet - 网络和共享中心 - 更改适配器设置”，重命名有“Microsoft Virtual Wifi Miniport Adapter”字样的无线网络连接为“无线网络共享”（或其他名字）。
-6. 右击你当前的上网连接（如“本地连接”“宽带连接”“无线网络连接”等）- 属性 - 共享，选中“允许其他用户通过此计算机的 Internet 连接来连接(N)”与“允许其他网络用户控制或禁用共享的 Internet 连接(O)”，家庭网络连接(H)中选择“无线网络共享”（或者你刚刚重命名的名字）。
-7. 如果上一步成功则忽视下面步骤。如果没有成功，请回到“更改适配器设置”右击“无线网络共享”，点击属性，点击“Internet 协议版本 4 (TCP/IPv4)”，点击属性，点击使用下面的 IP 地址，然后分别填写：
-192.168.137.1
-255.255.255.0
-（空着不填）
-8.8.8.8
-8.8.4.4
-然后点击确定，确定，再重试第六步。
+1. 输入S对无线网络名和密码进行设置。
+2. 输入B启动无线网络共享。
+3. 如果跳出网络选择，请选择家庭网络或工作网络。
+4. 输入I并按照提示进行第一次配置。
 
 二、再次使用：
 0. 启动本软件。
@@ -150,7 +141,7 @@
 
 五、可能碰到的问题：
 ①执行 一.2 时出现“无法启动承载网络。组或资源的状态不是执行请求操作的正确状态。”字样：
-　这说明您的无线网卡正在被使用，可以尝试以下步骤解决问题。
+　这可能是由于您的 Wi-Fi 没有打开，或者硬件开关被关闭导致，要解决只需打开即可。也有可能是无线网卡正在被使用导致的，这种情况下可以尝试以下步骤解决问题。
 　　1. 点击右下角的“网络与共享中心”，如果当前连接到某无线网络，则选中当前连接到的无线网络，点击“断开”并执行第4步，否则执行第3步。
 　　2. 打开“控制面板 - 网络和 Internet - 网络和共享中心 - 更改适配器设置”，禁用除了你当前的上网连接（如“本地连接”“宽带连接”）以外的所有连接并重新启用再试。
 　　3. 再次执行 一.2，若问题继续，请执行第3步。
@@ -159,7 +150,25 @@
 　　1. 输入R重启共享。
 　　2. 若问题持续，输入D深度重启共享。
     3. 若问题持续，输入C关闭后再次输入D深度重启。
-    4. 若问题持续，重启电脑。</value>
+    4. 若问题持续，重启电脑。
+
+③Android 设备不断地显示“正在获取 IP 地址……”
+    1. 按照②的方法重启共享。
+    2. 若无效，在您的 Android 设备上按住你的热点名。
+    3. 点击“修改网络”。
+    4. 点击“显示高级选项”。
+    5. 点击“IP 设置”，选“静态”。
+    6. “IP 地址”中输入“192.168.137.xxx”，其中要将 xxx 替换成 2 至 255 中一个你喜欢的数（但愿你没有碰上冲突）。如果你在 一、7 中使用了别的静态 IP 地址，这里前缀也要对应修改。
+    7. 在“域名 1”中输入“8.8.8.8”，“域名 2”中输入“8.8.4.4”。
+    8. 点击“保存”，稍等片刻即可连上网络。若可以正常上网则说明设置没有问题，若不能请返回检查设置。
+
+六、进阶使用：
+此工具支持命令行参数，用法：
+    Mygod无线网络共享.exe [命令序列]
+
+若命令序列不为空，则程序运行完后将退出，不等待用户继续输入。
+
+命令序列    相当于启动此工具后按的一系列键盘，支持除以下指令外的全部指令：H（帮助）、I（初始化设置）、S（设置无线网络名 (SSID) 与密码）、T（设置开机时自动运行）、X（检查网卡是否支持共享无线网络）。</value>
     <comment>帮助。</comment>
   </data>
   <data name="SettingsStep1" xml:space="preserve">
@@ -204,10 +213,6 @@
   <data name="ChangeAutoRunFinish" xml:space="preserve">
     <value>修改自动运行完成。</value>
   </data>
-  <data name="UpdateContent" xml:space="preserve">
-    <value>改进帮助。</value>
-    <comment>显示更新的内容。</comment>
-  </data>
   <data name="Not" xml:space="preserve">
     <value>不</value>
     <comment>替换用文本“不”。</comment>
@@ -233,7 +238,7 @@
   </data>
   <data name="Requirement" xml:space="preserve">
     <value>{0} 需求配置：
- ※ 安装 .NET Framework 4 Client Profile
+ ※ 安装 .NET Framework 4.5.1 或更高（Windows 8.1 自带）
  ※ Windows 7 或更高版本的 Windows
  ※ 连接到 Internet
  ※ 有支持无线网络共享（按 X 检测）的 Wi-fi 无线网络适配器</value>
@@ -252,7 +257,8 @@
 可用操作：
     A 查看当前共享的设置与状态            B 启动共享
     C 关闭共享                            D 深度重启共享
-    H 帮助                                K 刷新安全密钥 (用后需要再次启动共享)
+    H 帮助                                I 初始化设置
+    K 刷新安全密钥 (用后需要再次启动共享)
     Q 查看当前已连接的设备                R 重启共享
     S 设置无线网络名 (SSID) 与密码        T 设置开机时自动运行
     U 检查更新                            W 监视当前已连接的设备
@@ -280,5 +286,26 @@
   </data>
   <data name="StoppingService" xml:space="preserve">
     <value>正在停止服务 {0} ……</value>
+  </data>
+  <data name="WatchCurrentDevices" xml:space="preserve">
+    <value>监视已连接设备中，按 Ctrl + C 键返回。</value>
+  </data>
+  <data name="QueryVirtualAdapterFailed" xml:space="preserve">
+    <value>查询 Microsoft 托管网络虚拟适配器失败！请先启动无线网络共享后再试。</value>
+  </data>
+  <data name="QueryVirtualAdapterConfigurationFailed" xml:space="preserve">
+    <value>查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。</value>
+  </data>
+  <data name="ConnectionFormat" xml:space="preserve">
+    <value>{0}. {1} ({2})</value>
+  </data>
+  <data name="PickConnectionPrompt" xml:space="preserve">
+    <value>请选择要共享的互联网连接序号：（即前面的序号，输个错误的取消操作）</value>
+  </data>
+  <data name="InitFinished" xml:space="preserve">
+    <value>初始化设置完成！</value>
+  </data>
+  <data name="AutoNoInit" xml:space="preserve">
+    <value>自动状态下拒绝初始化设置！</value>
   </data>
 </root>

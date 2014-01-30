@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Reflection;
+using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Windows.Forms;
-using IWshRuntimeLibrary;
 using Microsoft.Win32;
-using File = System.IO.File;
+using Microsoft.Win32.TaskScheduler;
+using ROOT.CIMV2.Win32;
 
 namespace Mygod.WifiShare
 {
@@ -30,20 +30,9 @@ namespace Mygod.WifiShare
     {
         private static AssemblyName NowAssemblyName { get { return Assembly.GetCallingAssembly().GetName(); } }
         private static string ProgramTitle { get { return NowAssemblyName.Name + @" V" + NowAssemblyName.Version; } }
-        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\", 
-                             RegistrySSID = "sSSID", RegistryKey = "sKey";
+        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\",
+                             RegistrySSID = "sSSID", RegistryKey = "sKey", TaskName = "MygodWifiShare";
         private static string ssid, key;
-
-        private static DateTime CompilationTime
-        {
-            get
-            {
-                var b = new byte[2048];
-                using (var s = new FileStream(Assembly.GetEntryAssembly().Location, FileMode.Open, FileAccess.Read)) s.Read(b, 0, 2048);
-                var dt = new DateTime(1970, 1, 1).AddSeconds(BitConverter.ToInt32(b, BitConverter.ToInt32(b, 60) + 8));
-                return dt + TimeZone.CurrentTimeZone.GetUtcOffset(dt);
-            }
-        }
 
         private static void Main(string[] args)
         {
@@ -52,7 +41,9 @@ namespace Mygod.WifiShare
             Console.WriteLine();
             if (CheckOS()) return;
             if (args.Length == 0)
-                while (true) if (SwitchOperation(ReadOperation(), false)) Console.WriteLine(); else return;
+                while (true)
+                    if (SwitchOperation(ReadOperation(), false)) Console.WriteLine();
+                    else return;
             UpdateSettings();
             foreach (var c in args.SelectMany(s => s)) SwitchOperation(c, true);
         }
@@ -68,27 +59,24 @@ namespace Mygod.WifiShare
         
         private static void SetAutoRun()
         {
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.Startup) + "\\" + Resources.StartUpName + ".lnk";
-            var auto = File.Exists(path);
-            Console.WriteLine(Resources.IsAutoRun, auto ? string.Empty : Resources.Not);
-            Console.Write(Resources.AskChange);
-            if (Char.ToUpper(Console.ReadKey().KeyChar) != 'Y') return;
-            Console.WriteLine();
-            if (auto) File.Delete(path);
-            else
+            using (var service = new TaskService())
             {
-                var shortcut = (IWshShortcut) new WshShell().CreateShortcut(path);
-                shortcut.Arguments = "B";
-                shortcut.Description = Resources.StartUpDescription;
-                shortcut.TargetPath = Application.ExecutablePath;
-                shortcut.WindowStyle = 1;
-                shortcut.Save();
+                var task = service.FindTask(TaskName);
+                Console.WriteLine(Resources.IsAutoRun, task == null ? Resources.Not : string.Empty);
+                Console.Write(Resources.AskChange);
+                if (char.ToUpper(Console.ReadKey().KeyChar) != 'Y') return;
+                Console.WriteLine();
+                if (task == null)
+                {
+                    var def = service.NewTask();
+                    def.Triggers.Add(new LogonTrigger { UserId = WindowsIdentity.GetCurrent().Name });
+                    def.Actions.Add(new ExecAction(Assembly.GetEntryAssembly().Location, "B"));
+                    def.Principal.RunLevel = TaskRunLevel.Highest;  // MOST IMPORTANT FIX
+                    service.RootFolder.RegisterTaskDefinition(TaskName, def);
+                }
+                else service.RootFolder.DeleteTask(TaskName);
             }
             Console.WriteLine(Resources.ChangeAutoRunFinish);
-        }
-        private static void ShowUpdateContent() 
-        {
-            Console.WriteLine(Resources.UpdateContent);
         }
         private static void Restart()
         {
@@ -127,7 +115,54 @@ namespace Mygod.WifiShare
         private static void Boot()
         {
             Command(string.Format(Commands.UpdateSettings, ssid, key));
-            Command(string.Format(Commands.Boot, ssid, key));
+            Command(string.Format(Commands.Boot));
+        }
+        private static void Init()
+        {
+            var virtualAdapter = new ManagementObjectSearcher(
+                    new SelectQuery("Win32_NetworkAdapter", "PhysicalAdapter=1 AND ServiceName='vwifimp'"))
+                .Get().OfType<ManagementObject>().Select(result => new NetworkAdapter(result)).SingleOrDefault();
+            if (virtualAdapter == null)
+            {
+                Console.WriteLine(Resources.QueryVirtualAdapterFailed);
+                return;
+            }
+            virtualAdapter.NetConnectionID = "无线网络共享";
+            var mo = new ManagementObjectSearcher(
+                new SelectQuery("Win32_NetworkAdapterConfiguration", string.Format("SettingID='{0}'", virtualAdapter.GUID)))
+                .Get().OfType<ManagementObject>().SingleOrDefault();
+            if (mo == null)
+            {
+                Console.WriteLine(Resources.QueryVirtualAdapterConfigurationFailed);
+                return;
+            }
+            mo.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
+            mo.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
+            mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { new[] { "8.8.8.8", "8.8.4.4" } });
+            dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("5C63C1AD-3956-4FF8-8486-40034758315B")));
+            dynamic virtualConnection = null;
+            var query = new List<Tuple<dynamic, dynamic, dynamic>>();   // NCS_CONNECTED
+            foreach (var connection in manager.EnumEveryConnection)
+            {
+                var props = manager.NetConnectionProps[connection];
+                if (props.Guid == virtualAdapter.GUID)
+                    if (virtualConnection == null) virtualConnection = connection;
+                    else return;
+                else if (props.Status == 2) query.Add(new Tuple<dynamic, dynamic, dynamic>(connection, props.Name, props.DeviceName));
+            }
+            if (virtualConnection == null || query.Count <= 0) return;
+            for (var i = 0; i < query.Count; i++) Console.WriteLine(Resources.ConnectionFormat, i, query[i].Item2, query[i].Item3);
+            Console.Write(Resources.PickConnectionPrompt);
+            int picked;
+            if (!int.TryParse(Console.ReadLine(), out picked) || picked < 0 || picked >= query.Count) return;
+            foreach (var connection in manager.EnumEveryConnection)
+            {
+                var conf = manager.INetSharingConfigurationForINetConnection[connection];
+                if (conf.SharingEnabled) conf.DisableSharing();
+            }
+            manager.INetSharingConfigurationForINetConnection[query[picked].Item1].EnableSharing(0);    // ICSSHARINGTYPE_PUBLIC
+            manager.INetSharingConfigurationForINetConnection[virtualConnection].EnableSharing(1);      // ICSSHARINGTYPE_PRIVATE
+            Console.WriteLine(Resources.InitFinished);
         }
         private static void RefreshKey()
         {
@@ -216,7 +251,7 @@ namespace Mygod.WifiShare
             {
                 var result = QueryCurrentDevices();
                 Console.Clear();
-                Console.WriteLine("监视已连接设备中，按 Ctrl + C 键返回。");
+                Console.WriteLine(Resources.WatchCurrentDevices);
                 Console.WriteLine(result);      // prevent flashing
                 Thread.Sleep(500);
             }
@@ -272,7 +307,7 @@ namespace Mygod.WifiShare
         }
         private static bool SwitchOperation(char operation, bool auto)
         {
-            switch (Char.ToUpper(operation))
+            switch (char.ToUpper(operation))
             {
                 case 'A':
                     ShowStatus();
@@ -288,7 +323,12 @@ namespace Mygod.WifiShare
                     Restart();
                     break;
                 case 'H':
-                    if (auto) Console.WriteLine(Resources.AutoNoShowingHelp); else ShowHelp();
+                    if (auto) Console.WriteLine(Resources.AutoNoShowingHelp);
+                    else ShowHelp();
+                    break;
+                case 'I':
+                    if (auto) Console.WriteLine(Resources.AutoNoInit);
+                    else Init();
                     break;
                 case 'K':
                     RefreshKey();
@@ -301,10 +341,12 @@ namespace Mygod.WifiShare
                     Restart();
                     break;
                 case 'S':
-                    if (auto) Console.WriteLine(Resources.AutoNoSettings); else Settings();
+                    if (auto) Console.WriteLine(Resources.AutoNoSettings);
+                    else Settings();
                     break;
                 case 'T':
-                    if (auto) Console.WriteLine(Resources.AutoNoSettingAutoRun); else SetAutoRun();
+                    if (auto) Console.WriteLine(Resources.AutoNoSettingAutoRun);
+                    else SetAutoRun();
                     break;
                 case 'U':
                     CheckForUpdates();
@@ -313,7 +355,8 @@ namespace Mygod.WifiShare
                     WatchCurrentDevices();
                     break;
                 case 'X':
-                    if (auto) Console.WriteLine(Resources.AutoNoCheckingSupport); else CheckSupport();
+                    if (auto) Console.WriteLine(Resources.AutoNoCheckingSupport);
+                    else CheckSupport();
                     break;
                 default:
                     return false;
