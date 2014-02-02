@@ -118,18 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Help" xml:space="preserve">
-    <value>一、第一次使用：（通常情况下在每台电脑上只需执行一次）
-0. 启动本软件。
-1. 输入S对无线网络名和密码进行设置。
-2. 输入B启动无线网络共享。
-3. 如果跳出网络选择，请选择家庭网络或工作网络。
-4. 输入I并按照提示进行第一次配置。
-
-二、再次使用：
-0. 启动本软件。
-1. 输入B启动无线网络共享。
-
-三、开机自动启动无线网络共享
+    <value>三、开机自动启动无线网络共享
 0. 启动本软件。
 1. 输入T，如看到“当前设置自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
 2. 输入Y修改成不自动启动无线网络共享。
@@ -241,7 +230,7 @@
  ※ 安装 .NET Framework 4.5.1 或更高（Windows 8.1 自带）
  ※ Windows 7 或更高版本的 Windows
  ※ 连接到 Internet
- ※ 有支持无线网络共享（按 X 检测）的 Wi-fi 无线网络适配器</value>
+ ※ 有支持无线网络共享（按 X 检测）的 Wi-Fi 无线网络适配器</value>
     <comment>程序需求配置。</comment>
   </data>
   <data name="DefaultKey" xml:space="preserve">
@@ -257,7 +246,7 @@
 可用操作：
     A 查看当前共享的设置与状态            B 启动共享
     C 关闭共享                            D 深度重启共享
-    H 帮助                                I 初始化设置
+    H 更多帮助                            I 初始化设置
     K 刷新安全密钥 (用后需要再次启动共享)
     Q 查看当前已连接的设备                R 重启共享
     S 设置无线网络名 (SSID) 与密码        T 设置开机时自动运行
@@ -300,12 +289,30 @@
     <value>{0}. {1} ({2})</value>
   </data>
   <data name="PickConnectionPrompt" xml:space="preserve">
-    <value>请选择要共享的互联网连接序号：（即前面的序号，输个错误的取消操作）</value>
+    <value>请选择要共享的网络连接序号：（即前面的序号，输个错误的取消操作）</value>
   </data>
   <data name="InitFinished" xml:space="preserve">
     <value>初始化设置完成！</value>
   </data>
   <data name="AutoNoInit" xml:space="preserve">
     <value>自动状态下拒绝初始化设置！</value>
+  </data>
+  <data name="QuickHelp" xml:space="preserve">
+    <value>一、第一次使用：输入S对无线网络名和密码进行设置，输入B启动无线网络共享，如果跳出网络选择，请选择家庭网络或工作网络，输入I并按照提示进行第一次配置。
+
+二、再次使用：只需输入B启动无线网络共享即可。</value>
+    <comment>快速帮助。</comment>
+  </data>
+  <data name="ConfiguringVirtualAdapter" xml:space="preserve">
+    <value>配置 Microsoft 托管网络虚拟适配器中……</value>
+  </data>
+  <data name="SearchingAvailableNetwork" xml:space="preserve">
+    <value>搜索可用网络连接中……</value>
+  </data>
+  <data name="SharingOnlyConnection" xml:space="preserve">
+    <value>共享唯一可用的网络连接中……</value>
+  </data>
+  <data name="NoAvailableConnection" xml:space="preserve">
+    <value>没有可用的网络连接！</value>
   </data>
 </root>

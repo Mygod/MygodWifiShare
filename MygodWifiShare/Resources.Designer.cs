@@ -124,6 +124,15 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
+        ///   查找类似 配置 Microsoft 托管网络虚拟适配器中…… 的本地化字符串。
+        /// </summary>
+        internal static string ConfiguringVirtualAdapter {
+            get {
+                return ResourceManager.GetString("ConfiguringVirtualAdapter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 {0}. {1} ({2}) 的本地化字符串。
         /// </summary>
         internal static string ConnectionFormat {
@@ -151,18 +160,7 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
-        ///   查找类似 一、第一次使用：（通常情况下在每台电脑上只需执行一次）
-        ///0. 启动本软件。
-        ///1. 输入S对无线网络名和密码进行设置。
-        ///2. 输入B启动无线网络共享。
-        ///3. 如果跳出网络选择，请选择家庭网络或工作网络。
-        ///4. 输入I并按照提示进行第一次配置。
-        ///
-        ///二、再次使用：
-        ///0. 启动本软件。
-        ///1. 输入B启动无线网络共享。
-        ///
-        ///三、开机自动启动无线网络共享
+        ///   查找类似 三、开机自动启动无线网络共享
         ///0. 启动本软件。
         ///1. 输入T，如看到“当前设置自动启动无线网络共享。”的字样，关闭本程序，否则执行第2步。
         ///2. 输入Y修改成不自动启动无线网络共享。
@@ -175,7 +173,9 @@ namespace Mygod.WifiShare {
         ///五、可能碰到的问题：
         ///①执行 一.2 时出现“无法启动承载网络。组或资源的状态不是执行请求操作的正确状态。”字样：
         ///　这可能是由于您的 Wi-Fi 没有打开，或者硬件开关被关闭导致，要解决只需打开即可。也有可能是无线网卡正在被使用导致的，这种情况下可以尝试以下步骤解决问题。
-        ///　　1. [字符串的其余部分被截断]&quot;; 的本地化字符串。
+        ///　　1. 点击右下角的“网络与共享中心”，如果当前连接到某无线网络，则选中当前连接到的无线网络，点击“断开”并执行第4步，否则执行第3步。
+        ///　　2. 打开“控制面板 - 网络和 Internet - 网络和共享中心 - 更改适配器设置”，禁用除了你当前的上网连接（如“本地连接”“宽带连接”）以外的所有连接并重新启用再试。
+        ///　　3. 再次执 [字符串的其余部分被截断]&quot;; 的本地化字符串。
         /// </summary>
         internal static string Help {
             get {
@@ -211,6 +211,15 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
+        ///   查找类似 没有可用的网络连接！ 的本地化字符串。
+        /// </summary>
+        internal static string NoAvailableConnection {
+            get {
+                return ResourceManager.GetString("NoAvailableConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 不 的本地化字符串。
         /// </summary>
         internal static string Not {
@@ -230,7 +239,7 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
-        ///   查找类似 请选择要共享的互联网连接序号：（即前面的序号，输个错误的取消操作） 的本地化字符串。
+        ///   查找类似 请选择要共享的网络连接序号：（即前面的序号，输个错误的取消操作） 的本地化字符串。
         /// </summary>
         internal static string PickConnectionPrompt {
             get {
@@ -266,15 +275,35 @@ namespace Mygod.WifiShare {
         }
         
         /// <summary>
+        ///   查找类似 一、第一次使用：输入S对无线网络名和密码进行设置，输入B启动无线网络共享，如果跳出网络选择，请选择家庭网络或工作网络，输入I并按照提示进行第一次配置。
+        ///
+        ///二、再次使用：只需输入B启动无线网络共享即可。 的本地化字符串。
+        /// </summary>
+        internal static string QuickHelp {
+            get {
+                return ResourceManager.GetString("QuickHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 {0} 需求配置：
         /// ※ 安装 .NET Framework 4.5.1 或更高（Windows 8.1 自带）
         /// ※ Windows 7 或更高版本的 Windows
         /// ※ 连接到 Internet
-        /// ※ 有支持无线网络共享（按 X 检测）的 Wi-fi 无线网络适配器 的本地化字符串。
+        /// ※ 有支持无线网络共享（按 X 检测）的 Wi-Fi 无线网络适配器 的本地化字符串。
         /// </summary>
         internal static string Requirement {
             get {
                 return ResourceManager.GetString("Requirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 搜索可用网络连接中…… 的本地化字符串。
+        /// </summary>
+        internal static string SearchingAvailableNetwork {
+            get {
+                return ResourceManager.GetString("SearchingAvailableNetwork", resourceCulture);
             }
         }
         
@@ -338,6 +367,15 @@ namespace Mygod.WifiShare {
         internal static string SettingsStep6 {
             get {
                 return ResourceManager.GetString("SettingsStep6", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 共享唯一可用的网络连接中…… 的本地化字符串。
+        /// </summary>
+        internal static string SharingOnlyConnection {
+            get {
+                return ResourceManager.GetString("SharingOnlyConnection", resourceCulture);
             }
         }
         
@@ -409,7 +447,7 @@ namespace Mygod.WifiShare {
         ///可用操作：
         ///    A 查看当前共享的设置与状态            B 启动共享
         ///    C 关闭共享                            D 深度重启共享
-        ///    H 帮助                                I 初始化设置
+        ///    H 更多帮助                            I 初始化设置
         ///    K 刷新安全密钥 (用后需要再次启动共享)
         ///    Q 查看当前已连接的设备                R 重启共享
         ///    S 设置无线网络名 (SSID) 与密码        T 设置开机时自动运行

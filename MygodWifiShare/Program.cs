@@ -119,6 +119,7 @@ namespace Mygod.WifiShare
         }
         private static void Init()
         {
+            Console.WriteLine(Resources.ConfiguringVirtualAdapter);
             var virtualAdapter = new ManagementObjectSearcher(
                     new SelectQuery("Win32_NetworkAdapter", "PhysicalAdapter=1 AND ServiceName='vwifimp'"))
                 .Get().OfType<ManagementObject>().Select(result => new NetworkAdapter(result)).SingleOrDefault();
@@ -139,30 +140,45 @@ namespace Mygod.WifiShare
             mo.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
             mo.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
             mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { new[] { "8.8.8.8", "8.8.4.4" } });
+            Console.WriteLine(Resources.SearchingAvailableNetwork);
             dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("5C63C1AD-3956-4FF8-8486-40034758315B")));
             dynamic virtualConnection = null;
-            var query = new List<Tuple<dynamic, dynamic, dynamic>>();   // NCS_CONNECTED
+            var query = new List<Tuple<dynamic, dynamic>>();
             foreach (var connection in manager.EnumEveryConnection)
             {
                 var props = manager.NetConnectionProps[connection];
                 if (props.Guid == virtualAdapter.GUID)
                     if (virtualConnection == null) virtualConnection = connection;
                     else return;
-                else if (props.Status == 2) query.Add(new Tuple<dynamic, dynamic, dynamic>(connection, props.Name, props.DeviceName));
+                else if (props.Status == 2) // NCS_CONNECTED
+                {
+                    Console.WriteLine(Resources.ConnectionFormat, query.Count, props.Name, props.DeviceName);
+                    query.Add(new Tuple<dynamic, dynamic>(connection, props.Guid));
+                }
             }
-            if (virtualConnection == null || query.Count <= 0) return;
-            for (var i = 0; i < query.Count; i++) Console.WriteLine(Resources.ConnectionFormat, i, query[i].Item2, query[i].Item3);
-            Console.Write(Resources.PickConnectionPrompt);
-            int picked;
-            if (!int.TryParse(Console.ReadLine(), out picked) || picked < 0 || picked >= query.Count) return;
-            foreach (var connection in manager.EnumEveryConnection)
+            if (query.Count > 0)
             {
-                var conf = manager.INetSharingConfigurationForINetConnection[connection];
-                if (conf.SharingEnabled) conf.DisableSharing();
+                var picked = 0;
+                if (query.Count > 1)
+                {
+                    Console.Write(Resources.PickConnectionPrompt);
+                    if (!int.TryParse(Console.ReadLine(), out picked) || picked < 0 || picked >= query.Count) return;
+                }
+                else Console.WriteLine(Resources.SharingOnlyConnection);
+                foreach (var connection in manager.EnumEveryConnection)
+                {
+                    var conf = manager.INetSharingConfigurationForINetConnection[connection];
+                    var props = manager.NetConnectionProps[connection];
+                    if (conf.SharingEnabled && (props.Guid != query[picked].Item2 || conf.SharingConnectionType != 0)
+                        && (props.Guid != virtualAdapter.GUID && conf.SharingConnectionType != 1)) conf.DisableSharing();
+                }
+                var tempConf = manager.INetSharingConfigurationForINetConnection[query[picked].Item1];
+                if (!tempConf.SharingEnabled) tempConf.EnableSharing(0);    // ICSSHARINGTYPE_PRIVATE
+                tempConf = manager.INetSharingConfigurationForINetConnection[virtualConnection];
+                if (!tempConf.SharingEnabled) tempConf.EnableSharing(1);    // ICSSHARINGTYPE_PUBLIC
+                Console.WriteLine(Resources.InitFinished);
             }
-            manager.INetSharingConfigurationForINetConnection[query[picked].Item1].EnableSharing(0);    // ICSSHARINGTYPE_PUBLIC
-            manager.INetSharingConfigurationForINetConnection[virtualConnection].EnableSharing(1);      // ICSSHARINGTYPE_PRIVATE
-            Console.WriteLine(Resources.InitFinished);
+            else Console.WriteLine(Resources.NoAvailableConnection);
         }
         private static void RefreshKey()
         {
@@ -196,10 +212,12 @@ namespace Mygod.WifiShare
         }
         private static void CheckForUpdates()
         {
-            Process.Start("http://mygodstudio.tk/product/mygod-wifi-share/");
+            Process.Start("http://studio.mygod.tk/product/mygod-wifi-share/");
         }
         private static void ShowHelp()
         {
+            Console.WriteLine(Resources.QuickHelp);
+            Console.WriteLine();
             Console.WriteLine(Resources.Help);
         }
         
@@ -268,6 +286,8 @@ namespace Mygod.WifiShare
         private static void OutputRequirement()
         {
             Console.WriteLine(Resources.Requirement, ProgramTitle);
+            Console.WriteLine();
+            Console.WriteLine(Resources.QuickHelp);
         }
         private static void UpdateSettings()
         {
