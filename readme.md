@@ -5,3 +5,4 @@ Mygod Wifi Share™! A light-weighted tool to share your Internet connection EVE
 Third Party Libraries
 ---------------------
 * Task Scheduler Managed Wrapper:   http://taskscheduler.codeplex.com/
+* Virtual Router: (modified)        http://virtualrouter.codeplex.com/
