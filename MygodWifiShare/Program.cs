@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -122,12 +123,10 @@ namespace Mygod.WifiShare
  ※ 有支持无线网络共享（按 A 查看）的 Wi-Fi 无线网络适配器",
             WelcomeToUse = @"欢迎使用 {0}！
 可用操作：（输入其他退出）
-    A 查看当前共享的设置与状态            B 启动/重启共享
-    C 关闭共享                            D 深度重启共享
-    H 更多帮助                            I 初始化设置
-    K 刷新安全设置 (用后需要再次启动共享) Q 查看当前已连接的设备
-    S 设置无线网络名、密码与最大客户端数  T 设置开机时自动运行
-    U 检查更新                            W 监视客户端
+    A 查看当前共享的设置与状态            B 启动/重启共享    C 关闭共享
+    D 深度重启共享                        K 刷新安全设置 (用后需要再次启动共享)
+    I 初始化设置       S 杂项设置         T 设置开机自启动
+    Q 查看当前客户端   W 监视客户端       H 更多帮助         U 检查更新
 请输入操作：",
             QuickHelp = @"一、第一次使用：输入 S 对无线网络名和密码进行设置，输入 B 启动无线网络共享，如果跳出网络选择，请选择家庭网络或工作网络，输入 I 并按照提示进行第一次配置。
 
@@ -171,17 +170,87 @@ namespace Mygod.WifiShare
 
 若命令序列不为空，则程序运行完后将退出，不等待用户继续输入。
 
-命令序列    相当于启动此工具后按的一系列键盘，支持除以下指令外的全部指令：H、I、S、T、X。";
+命令序列    相当于启动此工具后按的一系列键盘，支持除以下指令外的全部指令：H、I、S、T。",
+            Unknown = "(未知)";
+    }
+
+    sealed class DnsCacheEntry
+    {
+        public DnsCacheEntry(IPAddress ip)
+        {
+            IPAddress = ip;
+        }
+
+        public void Update()
+        {
+            if (semaphore.Wait(0))
+            {
+                try
+                {
+                    var entry = Dns.GetHostEntry(IPAddress);
+                    Domains = string.Join(", ", new[] { entry.HostName }.Union(entry.Aliases));
+                }
+                catch
+                {
+                    Domains = R.Unknown;
+                }
+                cacheTime = DateTime.Now;
+            }
+            else semaphore.Wait();          // wait for the already running thread
+            semaphore.Release();
+        }
+        public async void UpdateAsync()
+        {
+            if (!semaphore.Wait(0)) return; // already running
+            try
+            {
+                var entry = await Dns.GetHostEntryAsync(IPAddress);
+                Domains = string.Join(", ", new[] { entry.HostName }.Union(entry.Aliases));
+            }
+            catch
+            {
+                Domains = R.Unknown;
+            }
+            cacheTime = DateTime.Now;
+            semaphore.Release();
+        }
+
+        public readonly IPAddress IPAddress;
+        public string Domains = "(加载中)";
+        private DateTime cacheTime = DateTime.MinValue;
+        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+
+        public bool Decayed { get { return (DateTime.Now - cacheTime).TotalSeconds >= Program.TTL; } }
+    }
+    sealed class DnsCache : KeyedCollection<IPAddress, DnsCacheEntry>
+    {
+        public string GetDomains(IPAddress ip, bool wait = false)
+        {
+            DnsCacheEntry entry;
+            if (Contains(ip)) entry = this[ip];
+            else Add(entry = new DnsCacheEntry(ip));
+            if (entry.Decayed)
+                if (wait) entry.Update();
+                else entry.UpdateAsync();
+            return entry.Domains;
+        }
+
+        protected override IPAddress GetKeyForItem(DnsCacheEntry item)
+        {
+            return item.IPAddress;
+        }
     }
 
     static class Program
     {
         private static AssemblyName NowAssemblyName { get { return Assembly.GetCallingAssembly().GetName(); } }
         private static string ProgramTitle { get { return NowAssemblyName.Name + @" V" + NowAssemblyName.Version; } }
-        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\",
-                             RegistrySSID = "SSID", RegistryKey = "Key", RegistryPeersCount = "PeersCount", TaskName = "MygodWifiShare";
+        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\", RegistrySSID = "SSID",
+                             RegistryKey = "Key", RegistryPeersCount = "PeersCount", RegistryTTL = "TTL", TaskName = "MygodWifiShare";
         private static string ssid, key;
         private static int peersCount;
+        internal static int TTL;
+        private static readonly DnsCache DnsCache = new DnsCache();
         private static readonly WlanManager Manager = new WlanManager();
 
         private static void Main(string[] args)
@@ -222,7 +291,7 @@ namespace Mygod.WifiShare
         {
             while (e != null && !(e is AggregateException))
             {
-                result.AppendFormat("({0}) {1}{2}{3}{2}", e.GetType(), e.Message, Environment.NewLine, e.StackTrace);
+                result.AppendFormat("({0}) {1}\n{2}\n", e.GetType(), e.Message, e.StackTrace);
                 e = e.InnerException;
             }
             var ae = e as AggregateException;
@@ -481,6 +550,10 @@ namespace Mygod.WifiShare
                 Registry.SetValue(RegistryPosition, RegistryPeersCount, peersCount);
                 changed = true;
             }
+            Console.WriteLine("TTL：DNS 查询缓存时间，0 表示不缓存，若不明觉厉请最好不要修改。（单位：秒）");
+            Console.WriteLine("旧的 TTL：" + TTL);
+            Console.Write("新的 TTL：");
+            if (int.TryParse(Console.ReadLine(), out TTL) && TTL >= 0) Registry.SetValue(RegistryPosition, RegistryTTL, TTL);
             if (!changed) return;
             Console.Write("修改完毕，是否要立即生效？(Y 生效，其他键不生效)");
             var ch = char.ToUpper(Console.ReadKey().KeyChar);
@@ -513,7 +586,7 @@ namespace Mygod.WifiShare
                                       PhyTypeToString(status.dot11PhyType), status.ulChannelFrequency, status.dwNumberOfPeers);
             });
         }
-        private static string QueryCurrentDevices()
+        private static string QueryCurrentDevices(bool wait = false)
         {
             try
             {
@@ -527,18 +600,7 @@ namespace Mygod.WifiShare
                     var padding = string.Empty.PadLeft(8 + (int) Math.Floor(Math.Log10(i)));
                     var ips = lookup[address.PeerMacAddress.ToString()].ToArray();
                     if (ips.Length > 0) result.AppendFormat("{1}IP  地址：{0}\n{1}设备名称：{2}\n", string.Join("; ", ips), padding,
-                        string.Join("; ", ips.Select(ip =>
-                        {
-                            try
-                            {
-                                var entry = Dns.GetHostEntry(ip.IPAddress);
-                                return string.Join(", ", new[] { entry.HostName }.Union(entry.Aliases));
-                            }
-                            catch
-                            {
-                                return "(未知)";
-                            }
-                        })));
+                        string.Join("; ", ips.Select(ip => DnsCache.GetDomains(ip.IPAddress, wait || TTL == 0))));
                 }
                 return result.ToString();
             }
@@ -597,13 +659,22 @@ namespace Mygod.WifiShare
             if (key == null) Registry.SetValue(RegistryPosition, RegistryKey, key = "AwesomePassword");
             try
             {
-                peersCount = (int) Registry.GetValue(RegistryPosition, RegistryPeersCount, null);
+                peersCount = (int)Registry.GetValue(RegistryPosition, RegistryPeersCount, null);
             }
             catch
             {
                 peersCount = -1;
             }
             if (peersCount < 0) Registry.SetValue(RegistryPosition, RegistryPeersCount, peersCount = 100);
+            try
+            {
+                TTL = (int)Registry.GetValue(RegistryPosition, RegistryTTL, null);
+            }
+            catch
+            {
+                TTL = -1;
+            }
+            if (TTL < 0) Registry.SetValue(RegistryPosition, RegistryTTL, TTL = 300);
         }
         private static char ReadOperation()
         {
@@ -642,7 +713,7 @@ namespace Mygod.WifiShare
                     RefreshKey();
                     break;
                 case 'Q':
-                    Console.WriteLine(QueryCurrentDevices());
+                    Console.WriteLine(QueryCurrentDevices(true));
                     break;
                 case 'S':
                     if (auto) Console.WriteLine("自动状态下拒绝设置！");
