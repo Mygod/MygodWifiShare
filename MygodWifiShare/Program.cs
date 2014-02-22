@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
-using System.Net;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
@@ -15,104 +12,10 @@ using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
 using ROOT.CIMV2.Win32;
-using VirtualRouter.Wlan;
-using VirtualRouter.Wlan.WinAPI;
 using Action = System.Action;
 
 namespace Mygod.WifiShare
 {
-    // ReSharper disable MemberCanBePrivate.Global
-    static class Arp
-    {
-        [DllImport("iphlpapi.dll")]
-        private static extern int GetIpNetTable(IntPtr pIpNetTable, ref int pdwSize, bool bOrder);
-        [DllImport("iphlpapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern int FreeMibTable(IntPtr pIpNetTable);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MibIpNetRow
-        {
-            /// <summary>
-            /// The index of the adapter.
-            /// </summary>
-            public readonly int Index;
-            /// <summary>
-            /// The length, in bytes, of the physical address.
-            /// </summary>
-            public readonly int PhysAddrLen;
-            /// <summary>
-            /// The physical address.
-            /// </summary>
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-            public readonly byte[] PhysAddr;
-            /// <summary>
-            /// The IPv4 address.
-            /// </summary>
-            public readonly uint Addr;
-            /// <summary>
-            /// The type of ARP entry. This type can be one of the following values.
-            /// </summary>
-            public readonly IPNetRowType Type;
-
-            public string MacAddress
-            {
-                get { return string.Join(":", PhysAddr.Take(PhysAddrLen).Select(b => b.ToString("X2"))); }
-            }
-            public IPAddress IPAddress
-            {
-                get { return new IPAddress(Addr); }
-            }
-
-            public override string ToString()
-            {
-                var type = string.Empty;
-                switch (Type)
-                {
-                    case IPNetRowType.Other:
-                        type = "其他";
-                        break;
-                    case IPNetRowType.Invalid:
-                        type = "无效";
-                        break;
-                    case IPNetRowType.Dynamic:
-                        type = "动态";
-                        break;
-                    case IPNetRowType.Static:
-                        type = "静态";
-                        break;
-                }
-                return string.IsNullOrWhiteSpace(type) ? IPAddress.ToString() : string.Format("{0} ({1})", IPAddress, type);
-            }
-        }
-
-        public enum IPNetRowType
-        {
-            Other = 1, Invalid, Dynamic, Static
-        }
-
-        public static IEnumerable<MibIpNetRow> GetIpNetTable()
-        {
-            int bytesNeeded = 0, result = GetIpNetTable(IntPtr.Zero, ref bytesNeeded, false);
-            if (result != 122 && result != 0) throw new Win32Exception(result);
-            var buffer = IntPtr.Zero;
-            try
-            {
-                buffer = Marshal.AllocCoTaskMem(bytesNeeded);
-                result = GetIpNetTable(buffer, ref bytesNeeded, false);
-                if (result != 0) throw new Win32Exception(result);
-                int entries = Marshal.ReadInt32(buffer), offset = Marshal.SizeOf(typeof(MibIpNetRow));
-                var ptr = new IntPtr(buffer.ToInt64() + 4 - offset);
-                for (var index = 0; index < entries; index++)
-                    yield return (MibIpNetRow)Marshal.PtrToStructure(ptr += offset, typeof(MibIpNetRow));
-            }
-            finally
-            {
-                FreeMibTable(buffer);
-            }
-        }
-    }
-    // ReSharper restore MemberCanBePrivate.Global
-
     static class R
     {
         public static readonly string
@@ -123,9 +26,9 @@ namespace Mygod.WifiShare
  ※ 有支持无线网络共享（按 A 查看）的 Wi-Fi 无线网络适配器",
             WelcomeToUse = @"欢迎使用 {0}！
 可用操作：（输入其他退出）
-    A 查看当前共享的设置与状态            B 启动/重启共享    C 关闭共享
+    A 查看当前共享当前设置与状态          B 启动/重启共享    C 关闭共享
     D 深度重启共享                        K 刷新安全设置 (用后需要再次启动共享)
-    I 初始化设置       S 杂项设置         T 设置开机自启动
+    I 初始化设置       S 杂项设置         T 设置开机自启动   L 输出日志
     Q 查看当前客户端   W 监视客户端       H 更多帮助         U 检查更新
 请输入操作：",
             QuickHelp = @"一、第一次使用：输入 S 对无线网络名和密码进行设置，输入 B 启动无线网络共享，如果跳出网络选择，请选择家庭网络或工作网络，输入 I 并按照提示进行第一次配置。
@@ -170,75 +73,7 @@ namespace Mygod.WifiShare
 
 若命令序列不为空，则程序运行完后将退出，不等待用户继续输入。
 
-命令序列    相当于启动此工具后按的一系列键盘，支持除以下指令外的全部指令：H、I、S、T。",
-            Unknown = "(未知)";
-    }
-
-    sealed class DnsCacheEntry
-    {
-        public DnsCacheEntry(IPAddress ip)
-        {
-            IPAddress = ip;
-        }
-
-        public void Update()
-        {
-            if (semaphore.Wait(0))
-            {
-                try
-                {
-                    var entry = Dns.GetHostEntry(IPAddress);
-                    Domains = string.Join(", ", new[] { entry.HostName }.Union(entry.Aliases));
-                }
-                catch
-                {
-                    Domains = R.Unknown;
-                }
-                cacheTime = DateTime.Now;
-            }
-            else semaphore.Wait();          // wait for the already running thread
-            semaphore.Release();
-        }
-        public async void UpdateAsync()
-        {
-            if (!semaphore.Wait(0)) return; // already running
-            try
-            {
-                var entry = await Dns.GetHostEntryAsync(IPAddress);
-                Domains = string.Join(", ", new[] { entry.HostName }.Union(entry.Aliases));
-            }
-            catch
-            {
-                Domains = R.Unknown;
-            }
-            cacheTime = DateTime.Now;
-            semaphore.Release();
-        }
-
-        public readonly IPAddress IPAddress;
-        public string Domains = "(加载中)";
-        private DateTime cacheTime = DateTime.MinValue;
-        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-
-        public bool Decayed { get { return (DateTime.Now - cacheTime).TotalSeconds >= Program.TTL; } }
-    }
-    sealed class DnsCache : KeyedCollection<IPAddress, DnsCacheEntry>
-    {
-        public string GetDomains(IPAddress ip, bool wait = false)
-        {
-            DnsCacheEntry entry;
-            if (Contains(ip)) entry = this[ip];
-            else Add(entry = new DnsCacheEntry(ip));
-            if (entry.Decayed)
-                if (wait) entry.Update();
-                else entry.UpdateAsync();
-            return entry.Domains;
-        }
-
-        protected override IPAddress GetKeyForItem(DnsCacheEntry item)
-        {
-            return item.IPAddress;
-        }
+命令序列    相当于启动此工具后按的一系列键盘，支持除以下指令外的全部指令：H、I、S、T。";
     }
 
     static class Program
@@ -251,7 +86,6 @@ namespace Mygod.WifiShare
         private static int peersCount;
         internal static int TTL;
         private static readonly DnsCache DnsCache = new DnsCache();
-        private static readonly WlanManager Manager = new WlanManager();
 
         private static void Main(string[] args)
         {
@@ -309,84 +143,9 @@ namespace Mygod.WifiShare
                 if (failAction != null) failAction();
             }
         }
-
-        private static string ReasonToString(WLAN_HOSTED_NETWORK_REASON reason)
+        private static void WriteReason(WlanHostedNetworkReason reason)
         {
-            switch (reason)
-            {
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_success: return "操作成功。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_unspecified: return "未知错误。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_bad_parameters: return "参数错误。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_service_shutting_down: return "服务正在关闭。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_insufficient_resources: return "服务资源不足。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_elevation_required: return "当前操作需要提升权限。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_read_only: return "尝试修改只读数据。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_persistence_failed: return "数据持久化失败。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_crypt_error: return "加密时出现错误。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_impersonation: return "用户模拟失败。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_stop_before_start: return "函数调用顺序错误。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_interface_available: return "无线接口可用。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_interface_unavailable: return "无线接口不可用。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_miniport_stopped: return "无线微型端口驱动程序终止了托管网络。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_miniport_started: return "无线微型端口驱动程序状态已改变。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_incompatible_connection_started:
-                    return "开始了一个不兼容的连接。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_incompatible_connection_stopped:
-                    return "一个不兼容的连接已停止。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_user_action: return "由于用户操作，状态已改变。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_client_abort: return "由于客户端终止，状态已改变。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_ap_start_failed: return "无线托管网络驱动启动失败。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_peer_arrived: return "一个客户端已连接到无线托管网络。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_peer_departed: return "一个客户端已从无线托管网络断开连接。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_peer_timeout: return "一个客户端连接超时。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_gp_denied: return "操作被组策略禁止。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_service_unavailable: return "无线局域网服务未运行。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_device_change: return "无线托管网络所使用的无线适配器已改变。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_properties_change: return "无线托管网络所使用的属性已改变。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_virtual_station_blocking_use:
-                    return "一个活动的虚拟站阻止了操作。";
-                case WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_service_available_on_virtual_station:
-                    return "在虚拟站上一个相同的服务已可用。";
-                default: return "未知的 WLAN_HOSTED_NETWORK_REASON。";
-            }
-        }
-        private static void WriteReason(WLAN_HOSTED_NETWORK_REASON reason)
-        {
-            Console.WriteLine("{0} ({1})", ReasonToString(reason), reason);
-        }
-        private static string StateToString(WLAN_HOSTED_NETWORK_STATE state)
-        {
-            switch (state)
-            {
-                case WLAN_HOSTED_NETWORK_STATE.wlan_hosted_network_unavailable: return "不可用";
-                case WLAN_HOSTED_NETWORK_STATE.wlan_hosted_network_idle: return "未启用";
-                case WLAN_HOSTED_NETWORK_STATE.wlan_hosted_network_active: return "已启用";
-                default: return "未知";
-            }
-        }
-        private static string PhyTypeToString(DOT11_PHY_TYPE type)
-        {
-            switch (type)
-            {
-                case DOT11_PHY_TYPE.dot11_phy_type_fhss: return "FHSS";
-                case DOT11_PHY_TYPE.dot11_phy_type_dsss: return "DSSS";
-                case DOT11_PHY_TYPE.dot11_phy_type_irbaseband: return "红外基带";
-                case DOT11_PHY_TYPE.dot11_phy_type_ofdm: return "OFDM";
-                case DOT11_PHY_TYPE.dot11_phy_type_hrdsss: return "HRDSSS";
-                case DOT11_PHY_TYPE.dot11_phy_type_erp: return "ERP";
-                case DOT11_PHY_TYPE.dot11_phy_type_ht: return "802.11n";
-                case DOT11_PHY_TYPE.dot11_phy_type_vht: return "802.11ac";
-                default: return (int) type < 0 ? "IHV" : "未知";
-            }
-        }
-        private static string AuthStateToString(WLAN_HOSTED_NETWORK_PEER_AUTH_STATE state)
-        {
-            switch (state)
-            {
-                case WLAN_HOSTED_NETWORK_PEER_AUTH_STATE.wlan_hosted_network_peer_state_invalid: return "无效";
-                case WLAN_HOSTED_NETWORK_PEER_AUTH_STATE.wlan_hosted_network_peer_state_authenticated: return "已认证";
-                default: return "未知";
-            }
+            Console.WriteLine(WlanManager.ToString(reason));
         }
 
         private static void SetAutoRun()
@@ -430,29 +189,37 @@ namespace Mygod.WifiShare
         private static void Close()
         {
             Console.Write("正在关闭共享……");
-            WriteReason(Manager.ForceStop());
+            WriteReason(WlanManager.ForceStop());
         }
         private static void Boot()
         {
             Close();
             Try(() =>
             {
+                WlanHostedNetworkReason reason;
+                Console.Write("启用托管网络中……");
+                WriteReason(reason = WlanManager.SetEnabled(true));
+                if (reason != WlanHostedNetworkReason.Success)
+                {
+                    Close();
+                    return;
+                }
                 Console.Write("正在应用设置……");
-                var reason = Manager.SetConnectionSettings(ssid, peersCount);
-                if (reason != WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_success)
+                reason = WlanManager.SetConnectionSettings(ssid, peersCount);
+                if (reason != WlanHostedNetworkReason.Success)
                 {
                     WriteReason(reason);
                     Close();
                     return;
                 }
-                WriteReason(reason = Manager.SetSecondaryKey(key));
-                if (reason != WLAN_HOSTED_NETWORK_REASON.wlan_hosted_network_reason_success)
+                WriteReason(reason = WlanManager.SetSecondaryKey(key));
+                if (reason != WlanHostedNetworkReason.Success)
                 {
                     Close();
                     return;
                 }
                 Console.Write("启动共享中……");
-                WriteReason(Manager.ForceStart());
+                WriteReason(WlanManager.ForceStart());
             }, Close);
         }
         private static void Init()
@@ -521,7 +288,7 @@ namespace Mygod.WifiShare
         private static void RefreshKey()
         {
             Console.Write("正在刷新安全设置……");
-            Try(() => WriteReason(Manager.RefreshSecuritySettings()));
+            Try(() => WriteReason(WlanManager.RefreshSecuritySettings()));
         }
         private static void Settings()
         {
@@ -564,7 +331,7 @@ namespace Mygod.WifiShare
         }
         private static void CheckForUpdates()
         {
-            Process.Start("http://studio.mygod.tk/product/mygod-wifi-share/");
+            Process.Start("http://mygod.tk/product/mygod-wifi-share/");
         }
         private static void ShowHelp()
         {
@@ -577,30 +344,78 @@ namespace Mygod.WifiShare
         {
             Try(() =>
             {
-                var status = Manager.QueryStatus();
-                Console.WriteLine("状态：\t\t\t{0} ({1})", StateToString(status.HostedNetworkState), status.HostedNetworkState);
-                if (status.HostedNetworkState == WLAN_HOSTED_NETWORK_STATE.wlan_hosted_network_unavailable) return;
+                WlanOpcodeValueType opCode;
+                try
+                {
+                    WlanHostedNetworkConnectionSettings cs;
+                    opCode = WlanManager.QueryConnectionSettings(out cs);
+                    Console.WriteLine("托管网络连接设置来源：\t{0}\nSSID：\t\t\t{1}\n最大客户端数：\t\t{2}", WlanManager.ToString(opCode),
+                        cs.HostedNetworkSSID.Content, cs.MaxNumberOfPeers);
+                }
+                catch (BadConfigurationException)
+                {
+                }
+                WlanHostedNetworkSecuritySettings ss;
+                opCode = WlanManager.QuerySecuritySettings(out ss);
+                Console.WriteLine("托管网络安全设置来源：\t{0}\n验证算法：\t\t{1}\n加密算法：\t\t{2}",
+                                  WlanManager.ToString(opCode),
+                                  WlanManager.ToString(ss.Dot11AuthAlgo), WlanManager.ToString(ss.Dot11CipherAlgo));
+                try
+                {
+                    string profile;
+                    opCode = WlanManager.QueryStationProfile(out profile);
+                    Console.Write("托管网络配置文件来源：\t{0}\n配置文件：\n{1}", WlanManager.ToString(opCode), profile.Trim('\0'));
+                }
+                catch (BadConfigurationException)
+                {
+                }
+                bool enabled;
+                opCode = WlanManager.QueryEnabled(out enabled);
+                Console.WriteLine("托管网络启用设置来源：\t{0}\n托管网络启用：\t\t{1}",
+                                  WlanManager.ToString(opCode), enabled ? '是' : '否');
+                string passKey;
+                bool isPassPhrase, isPersistent;
+                var reason = WlanManager.QuerySecondaryKey(out passKey, out isPassPhrase, out isPersistent);
+                if (reason == WlanHostedNetworkReason.Success)
+                    Console.WriteLine("密码：\t\t\t{0}\n使用密码短语：\t\t{1}\n永久密码：\t\t{2}",
+                                      passKey, isPassPhrase ? '是' : '否', isPersistent ? '是' : '否');
+                else Console.WriteLine("查询密码失败，原因：" + WlanManager.ToString(reason));
+                var status = WlanManager.QueryStatus();
+                Console.WriteLine("状态：\t\t\t" + WlanManager.ToString(status.HostedNetworkState));
+                if (status.HostedNetworkState == WlanHostedNetworkState.Unavailable) return;
                 Console.WriteLine("实际网络 ID：\t\t{0}\nBSSID：\t\t\t{1}", status.IPDeviceID, status.wlanHostedNetworkBSSID);
-                if (status.HostedNetworkState == WLAN_HOSTED_NETWORK_STATE.wlan_hosted_network_active)
+                if (status.HostedNetworkState == WlanHostedNetworkState.Active)
                     Console.WriteLine("802.11 物理层类型：\t{0}\n网络接口信道频率：\t{1}\n已认证客户端数量：\t{2}",
-                                      PhyTypeToString(status.dot11PhyType), status.ulChannelFrequency, status.dwNumberOfPeers);
+                                      WlanManager.ToString(status.dot11PhyType), status.ulChannelFrequency, status.dwNumberOfPeers);
             });
+        }
+        public static ILookup<string, Arp.MibIpNetRow> Lookup
+            { get { return Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row); }}
+        public static string GetDeviceDetails(WlanHostedNetworkPeerState peer, bool wait = false,
+                                              ILookup<string, Arp.MibIpNetRow> lookup = null, string padding = "")
+        {
+            var result = string.Format("物理地址：{0} ({1})\n", peer.PeerMacAddress, WlanManager.ToString(peer.PeerAuthState));
+            var ips = (lookup ?? Lookup)[peer.PeerMacAddress.ToString()].ToArray();
+            if (ips.Length > 0) result += string.Format("{0}IP  地址：{1}\n", padding,
+                string.Join("\n          " + padding, ips.Select(ip =>
+                {
+                    var domains = DnsCache.GetDomains(ip.IPAddress, wait || TTL == 0);
+                    return ip.ToString() + (domains == null ? string.Empty : (" [" + domains + ']'));
+                })));
+            return result;
         }
         private static string QueryCurrentDevices(bool wait = false)
         {
             try
             {
                 var result = new StringBuilder();
-                var lookup = Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row);
+                var lookup = Lookup;
                 var i = 0;
-                foreach (var address in Manager.QueryStatus().PeerList)
+                foreach (var peer in WlanManager.QueryStatus().PeerList)
                 {
-                    result.AppendFormat("设备 #{0} 物理地址：{1} ({2})\n", ++i, address.PeerMacAddress,
-                                        AuthStateToString(address.PeerAuthState));
-                    var padding = string.Empty.PadLeft(8 + (int) Math.Floor(Math.Log10(i)));
-                    var ips = lookup[address.PeerMacAddress.ToString()].ToArray();
-                    if (ips.Length > 0) result.AppendFormat("{1}IP  地址：{0}\n{1}设备名称：{2}\n", string.Join("; ", ips), padding,
-                        string.Join("; ", ips.Select(ip => DnsCache.GetDomains(ip.IPAddress, wait || TTL == 0))));
+                    i++;
+                    result.AppendFormat("设备 #{0} {1}", i,
+                        GetDeviceDetails(peer, wait, lookup, string.Empty.PadLeft(8 + (int) Math.Floor(Math.Log10(i)))));
                 }
                 return result.ToString();
             }
@@ -629,6 +444,17 @@ namespace Mygod.WifiShare
         {
             keepGoing = false;
             e.Cancel = true;
+        }
+
+        private static void OutputLog()
+        {
+            if (WlanManager.InternalLog.Length == 0) Console.WriteLine("没有可用的日志。");
+            else lock (WlanManager.InternalLog)
+            {
+                File.AppendAllText("MygodWifiShare.log", WlanManager.InternalLog.ToString());
+                WlanManager.InternalLog.Clear();
+                Process.Start("MygodWifiShare.log");
+            }
         }
         
         private static void OutputRequirement()
@@ -711,6 +537,9 @@ namespace Mygod.WifiShare
                     break;
                 case 'K':
                     RefreshKey();
+                    break;
+                case 'L':
+                    OutputLog();
                     break;
                 case 'Q':
                     Console.WriteLine(QueryCurrentDevices(true));

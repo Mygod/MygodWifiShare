@@ -96,6 +96,12 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Mygod.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -105,6 +111,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DnsCache.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="[References]\NetworkAdapter.cs">
@@ -136,49 +143,8 @@
     <Compile Include="[References]\[TaskScheduler]\V2\TaskSchedulerV2Interop.cs" />
     <Compile Include="[References]\[TaskScheduler]\Wildcard.cs" />
     <Compile Include="[References]\[TaskScheduler]\XmlSerializationHelper.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_AUTH_ALGORITHM.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_BSSID_LIST.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_BSS_TYPE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_CIPHER_ALGORITHM.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_MAC_ADDRESS.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_PHY_TYPE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_RADIO_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\DOT11_SSID.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\NDIS_OBJECT_HEADER.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\wlanapi.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_ASSOCIATION_ATTRIBUTES.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_AVAILABLE_NETWORK.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_AVAILABLE_NETWORK_LIST.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_CONNECTION_ATTRIBUTES.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_CONNECTION_MODE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_CONNECTION_PARAMETERS.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_CONNECTION_SETTINGS.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_DATA_PEER_STATE_CHANGE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_NOTIFICATION_CODE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_OPCODE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_PEER_AUTH_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_PEER_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_RADIO_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_REASON.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_SECURITY_SETTINGS.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_STATE_CHANGE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_HOSTED_NETWORK_STATUS.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_INTERFACE_INFO.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_INTERFACE_INFO_LIST.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_INTERFACE_STATE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_INTF_OPCODE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_NOTIFICATION_CODE_ACM.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_NOTIFICATION_CODE_MSN.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_NOTIFICATION_DATA.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_NOTIFICATION_SOURCE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_OPCODE_VALUE_TYPE.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_PROFILE_INFO.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_PROFILE_INFO_LIST.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WinAPI\WLAN_SECURITY_ATTRIBUTES.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WlanManager.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WlanStation.cs" />
-    <Compile Include="[References]\[VirtualRouter.Wlan]\WlanUtils.cs" />
+    <Compile Include="WlanNativeMethods.cs" />
+    <Compile Include="WlanManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.ico" />
@@ -193,6 +159,8 @@
     <EmbeddedResource Include="[References]\[TaskScheduler]\V1\TaskSchedulerV1Schema.xsd">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="Mygod.cer" />
+    <None Include="Mygod.pfx" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
@@ -217,6 +185,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\8.1\bin\x86\signtool.exe" sign /v /f "$(ProjectDir)Mygod.pfx" /t http://timestamp.verisign.com/scripts/timestamp.dll "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
