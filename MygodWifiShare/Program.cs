@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
@@ -28,7 +27,7 @@ namespace Mygod.WifiShare
 可用操作：（输入其他退出）
     A 查看当前共享当前设置与状态          B 启动/重启共享    C 关闭共享
     D 深度重启共享                        K 刷新安全设置 (用后需要再次启动共享)
-    I 初始化设置       S 杂项设置         T 设置开机自启动   L 输出日志
+    I 初始化设置       S 杂项设置         T 设置开机自启动   L 查看日志
     Q 查看当前客户端   W 监视客户端       H 更多帮助         U 检查更新
 请输入操作：",
             QuickHelp = @"一、第一次使用：输入 S 对无线网络名和密码进行设置，输入 B 启动无线网络共享，如果跳出网络选择，请选择家庭网络或工作网络，输入 I 并按照提示进行第一次配置。
@@ -89,6 +88,14 @@ namespace Mygod.WifiShare
 
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var exc = e.ExceptionObject as Exception;
+                if (exc == null) return;
+                Console.WriteLine("出现了未知错误！详情请查看临时目录下 MygodWifiShare.log 日志文件。");
+                lock (WlanManager.InternalLog)
+                    WlanManager.InternalLog.Write("[{0}]\t{1}", DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage());
+            };
             Console.Title = ProgramTitle;
             OutputRequirement();
             Console.WriteLine();
@@ -448,13 +455,7 @@ namespace Mygod.WifiShare
 
         private static void OutputLog()
         {
-            if (WlanManager.InternalLog.Length == 0) Console.WriteLine("没有可用的日志。");
-            else lock (WlanManager.InternalLog)
-            {
-                File.AppendAllText("MygodWifiShare.log", WlanManager.InternalLog.ToString());
-                WlanManager.InternalLog.Clear();
-                Process.Start("MygodWifiShare.log");
-            }
+            Process.Start(WlanManager.LogPath);
         }
         
         private static void OutputRequirement()

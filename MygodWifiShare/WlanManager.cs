@@ -1,14 +1,16 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Mygod.WifiShare
 {
     public static class WlanManager
     {
         private static readonly IntPtr WlanHandle;
-        public static readonly StringBuilder InternalLog = new StringBuilder();
+        public static readonly string LogPath = Path.Combine(Path.GetTempPath(), "MygodWifiShare.log");
+        public static readonly StreamWriter InternalLog = new StreamWriter(LogPath, true);
+        private static readonly WlanNativeMethods.WlanNotificationCallback Callback = OnNotification;
 
         static WlanManager()
         {
@@ -18,7 +20,7 @@ namespace Mygod.WifiShare
                 Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanOpenHandle(2, IntPtr.Zero, out serverVersion, out WlanHandle));
                 // WLAN_CLIENT_VERSION_VISTA: Client version for Windows Vista and Windows Server 2008
                 WlanNotificationSource notifSource;
-                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle, WlanNotificationSource.All, true, OnNotification, IntPtr.Zero, IntPtr.Zero, out notifSource));
+                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle, WlanNotificationSource.All, true, Callback, IntPtr.Zero, IntPtr.Zero, out notifSource));
                 var failReason = InitSettings();
                 if (failReason != WlanHostedNetworkReason.Success)
                     throw new Exception("Init Error WlanHostedNetworkInitSettings: " + failReason);
@@ -61,10 +63,8 @@ namespace Mygod.WifiShare
                 case WlanHostedNetworkReason.InterfaceUnavailable: return "无线接口不可用。";
                 case WlanHostedNetworkReason.MiniportStopped: return "无线微型端口驱动程序终止了托管网络。";
                 case WlanHostedNetworkReason.MiniportStarted: return "无线微型端口驱动程序状态已改变。";
-                case WlanHostedNetworkReason.IncompatibleConnectionStarted:
-                    return "开始了一个不兼容的连接。";
-                case WlanHostedNetworkReason.IncompatibleConnectionStopped:
-                    return "一个不兼容的连接已停止。";
+                case WlanHostedNetworkReason.IncompatibleConnectionStarted: return "开始了一个不兼容的连接。";
+                case WlanHostedNetworkReason.IncompatibleConnectionStopped: return "一个不兼容的连接已停止。";
                 case WlanHostedNetworkReason.UserAction: return "由于用户操作，状态已改变。";
                 case WlanHostedNetworkReason.ClientAbort: return "由于客户端终止，状态已改变。";
                 case WlanHostedNetworkReason.ApStartFailed: return "无线托管网络驱动启动失败。";
@@ -75,10 +75,8 @@ namespace Mygod.WifiShare
                 case WlanHostedNetworkReason.ServiceUnavailable: return "无线局域网服务未运行。";
                 case WlanHostedNetworkReason.DeviceChange: return "无线托管网络所使用的无线适配器已改变。";
                 case WlanHostedNetworkReason.PropertiesChange: return "无线托管网络所使用的属性已改变。";
-                case WlanHostedNetworkReason.VirtualStationBlockingUse:
-                    return "一个活动的虚拟站阻止了操作。";
-                case WlanHostedNetworkReason.ServiceAvailableOnVirtualStation:
-                    return "在虚拟站上一个相同的服务已可用。";
+                case WlanHostedNetworkReason.VirtualStationBlockingUse: return "一个活动的虚拟站阻止了操作。";
+                case WlanHostedNetworkReason.ServiceAvailableOnVirtualStation: return "在虚拟站上一个相同的服务已可用。";
                 default: return "未知的 WLAN_HOSTED_NETWORK_REASON。";
             }
         }
@@ -172,36 +170,37 @@ namespace Mygod.WifiShare
                 || notifData.notificationSource != WlanNotificationSource.Hnwk) return;
             lock (InternalLog)
             {
-                InternalLog.AppendFormat("[{0}]\t", DateTime.Now.ToString("yyyy.M.d H:mm:ss"));
+                InternalLog.Write("[{0}]\t", DateTime.Now.ToString("yyyy.M.d H:mm:ss"));
                 switch ((WlanHostedNetworkNotificationCode)notifData.notificationCode)
                 {
                     case WlanHostedNetworkNotificationCode.StateChange:
                         var pStateChange = (WlanHostedNetworkStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkStateChange));
-                        InternalLog.Append("托管网络状态已改变：" + ToString(pStateChange.OldState));
+                        InternalLog.Write("托管网络状态已改变：" + ToString(pStateChange.OldState));
                         if (pStateChange.OldState != pStateChange.NewState)
-                            InternalLog.Append(" => " + ToString(pStateChange.NewState));
-                        InternalLog.AppendLine("；原因：" + ToString(pStateChange.Reason));
+                            InternalLog.Write(" => " + ToString(pStateChange.NewState));
+                        InternalLog.WriteLine("；原因：" + ToString(pStateChange.Reason));
                         break;
                     case WlanHostedNetworkNotificationCode.PeerStateChange:
                         var pPeerStateChange = (WlanHostedNetworkDataPeerStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkDataPeerStateChange));
                         var lookup = Program.Lookup;
-                        InternalLog.AppendLine(string.Format("客户端已改变。原因：{0}\n{1} ====>\n{2}", ToString(pPeerStateChange.Reason),
-                                               Program.GetDeviceDetails(pPeerStateChange.OldState, true, lookup),
-                                               Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup)));
+                        InternalLog.WriteLine("客户端已改变。原因：{0}\n{1} ====>\n{2}", ToString(pPeerStateChange.Reason),
+                                              Program.GetDeviceDetails(pPeerStateChange.OldState, true, lookup),
+                                              Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup));
                         break;
                     case WlanHostedNetworkNotificationCode.RadioStateChange:
                         var pRadioState = (WlanHostedNetworkRadioState)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkRadioState));
-                        InternalLog.AppendLine(string.Format("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
-                            ToString(pRadioState.dot11SoftwareRadioState), ToString(pRadioState.dot11HardwareRadioState)));
+                        InternalLog.WriteLine("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
+                            ToString(pRadioState.dot11SoftwareRadioState), ToString(pRadioState.dot11HardwareRadioState));
                         break;
                     default:
-                        InternalLog.AppendLine("具体事件未知。");
+                        InternalLog.WriteLine("具体事件未知。");
                         break;
                 }
-                InternalLog.AppendLine();
+                InternalLog.WriteLine();
+                InternalLog.Flush();
             }
         }
 
@@ -274,13 +273,14 @@ namespace Mygod.WifiShare
             WlanHostedNetworkReason failReason;
             var settings = new WlanHostedNetworkConnectionSettings
             {
-                HostedNetworkSSID = ToDOT11_SSID(hostedNetworkSSID), MaxNumberOfPeers = (uint) maxNumberOfPeers
+                HostedNetworkSSID = ToDOT11_SSID(hostedNetworkSSID),
+                MaxNumberOfPeers = (uint)maxNumberOfPeers
             };
             var settingsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(settings));
             Marshal.StructureToPtr(settings, settingsPtr, false);
             Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
                                         WlanHostedNetworkOpcode.ConnectionSettings,
-                                        (uint) Marshal.SizeOf(settings), settingsPtr, out failReason, IntPtr.Zero));
+                                        (uint)Marshal.SizeOf(settings), settingsPtr, out failReason, IntPtr.Zero));
             return failReason;
         }
 
@@ -340,7 +340,7 @@ namespace Mygod.WifiShare
                 out dataSize, out dataPtr, out opcode, IntPtr.Zero);
             if (hr == 1610) throw new BadConfigurationException();
             Marshal.ThrowExceptionForHR(hr);
-            profile = Marshal.PtrToStringUni(dataPtr, (int) (dataSize >> 1));
+            profile = Marshal.PtrToStringUni(dataPtr, (int)(dataSize >> 1));
             return opcode;
         }
 
@@ -359,7 +359,8 @@ namespace Mygod.WifiShare
 
     public sealed class BadConfigurationException : Win32Exception
     {
-        public BadConfigurationException() : base(1610)
+        public BadConfigurationException()
+            : base(1610)
         {
         }
     }
