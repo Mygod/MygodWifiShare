@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
+using Mygod.Net;
 using ROOT.CIMV2.Win32;
 using Action = System.Action;
 
@@ -93,8 +94,8 @@ namespace Mygod.WifiShare
                 var exc = e.ExceptionObject as Exception;
                 if (exc == null) return;
                 Console.WriteLine("出现了未知错误！详情请查看临时目录下 MygodWifiShare.log 日志文件。");
-                lock (WlanManager.InternalLog)
-                    WlanManager.InternalLog.Write("[{0}]\t{1}", DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage());
+                lock (WlanManager.InternalLog) WlanManager.InternalLog.Write("[{0}]\t{1}{2}",
+                    DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage(), Environment.NewLine);
             };
             Console.Title = ProgramTitle;
             OutputRequirement();
@@ -338,7 +339,8 @@ namespace Mygod.WifiShare
         }
         private static void CheckForUpdates()
         {
-            Process.Start("http://mygod.tk/product/mygod-wifi-share/");
+            WebsiteManager.CheckForUpdates(223, () => Console.WriteLine("没有可用更新。"),
+                                           exc => Console.WriteLine("检查更新失败。\n错误信息：" + exc.GetMessage()));
         }
         private static void ShowHelp()
         {
@@ -431,26 +433,18 @@ namespace Mygod.WifiShare
                 return "查询客户端失败，详细信息：" + exc.GetMessage();
             }
         }
-        private static bool keepGoing;
         private static void WatchCurrentDevices()
         {
-            keepGoing = true;
-            Console.CancelKeyPress += StopWatching;
-            while (keepGoing)
+            while (true)
             {
+                if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape) break;
                 var result = QueryCurrentDevices();
                 Console.Clear();
-                Console.WriteLine("监视已连接设备中，按 Ctrl + C 键返回。");
+                Console.WriteLine("监视已连接设备中，按 Esc 键返回。");
                 Console.WriteLine(result);      // prevent flashing
                 Thread.Sleep(500);
             }
-            Console.CancelKeyPress -= StopWatching;
             Console.Clear();
-        }
-        private static void StopWatching(object sender, ConsoleCancelEventArgs e)
-        {
-            keepGoing = false;
-            e.Cancel = true;
         }
 
         private static void OutputLog()

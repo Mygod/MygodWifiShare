@@ -185,9 +185,10 @@ namespace Mygod.WifiShare
                         var pPeerStateChange = (WlanHostedNetworkDataPeerStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkDataPeerStateChange));
                         var lookup = Program.Lookup;
-                        InternalLog.WriteLine("客户端已改变。原因：{0}\n{1} ====>\n{2}", ToString(pPeerStateChange.Reason),
+                        InternalLog.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}", ToString(pPeerStateChange.Reason),
                                               Program.GetDeviceDetails(pPeerStateChange.OldState, true, lookup),
-                                              Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup));
+                                              Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup),
+                                              Environment.NewLine);
                         break;
                     case WlanHostedNetworkNotificationCode.RadioStateChange:
                         var pRadioState = (WlanHostedNetworkRadioState)

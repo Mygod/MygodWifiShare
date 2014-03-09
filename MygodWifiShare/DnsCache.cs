@@ -141,7 +141,7 @@ namespace Mygod.WifiShare
         }
 
         public readonly IPAddress IPAddress;
-        public string Domains = "(加载中)";
+        public string Domains = "加载中";
         private DateTime cacheTime = DateTime.MinValue;
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 

@@ -111,6 +111,9 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\MygodLibrary\MygodLibrary\Net\WebsiteManager.cs">
+      <Link>[References]\WebsiteManager.cs</Link>
+    </Compile>
     <Compile Include="DnsCache.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
