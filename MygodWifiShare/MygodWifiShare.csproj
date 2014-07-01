@@ -115,6 +115,7 @@
       <Link>[References]\WebsiteManager.cs</Link>
     </Compile>
     <Compile Include="DnsCache.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="[References]\NetworkAdapter.cs">
@@ -189,7 +190,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\8.1\bin\x86\signtool.exe" sign /v /f "$(ProjectDir)Mygod.pfx" /t http://timestamp.verisign.com/scripts/timestamp.dll "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\8.1\bin\x86\signtool.exe" sign /v /f "$(ProjectDir)Mygod.pfx" "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

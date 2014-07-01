@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Mygod.WifiShare
@@ -8,8 +7,6 @@ namespace Mygod.WifiShare
     public static class WlanManager
     {
         private static readonly IntPtr WlanHandle;
-        public static readonly string LogPath = Path.Combine(Path.GetTempPath(), "MygodWifiShare.log");
-        public static readonly StreamWriter InternalLog = new StreamWriter(LogPath, true);
         private static readonly WlanNativeMethods.WlanNotificationCallback Callback = OnNotification;
 
         static WlanManager()
@@ -171,24 +168,24 @@ namespace Mygod.WifiShare
         {
             if (notifData.dataSize <= 0 || notifData.dataPtr == IntPtr.Zero
                 || notifData.notificationSource != WlanNotificationSource.Hnwk) return;
-            lock (InternalLog)
+            lock (Logger.Instance)
             {
-                InternalLog.Write("[{0}]\t", DateTime.Now.ToString("yyyy.M.d H:mm:ss"));
+                Logger.Instance.Write("[{0}]\t", DateTime.Now.ToString("yyyy.M.d H:mm:ss"));
                 switch ((WlanHostedNetworkNotificationCode)notifData.notificationCode)
                 {
                     case WlanHostedNetworkNotificationCode.StateChange:
                         var pStateChange = (WlanHostedNetworkStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkStateChange));
-                        InternalLog.Write("托管网络状态已改变：" + ToString(pStateChange.OldState));
+                        Logger.Instance.Write("托管网络状态已改变：" + ToString(pStateChange.OldState));
                         if (pStateChange.OldState != pStateChange.NewState)
-                            InternalLog.Write(" => " + ToString(pStateChange.NewState));
-                        InternalLog.WriteLine("；原因：" + ToString(pStateChange.Reason));
+                            Logger.Instance.Write(" => " + ToString(pStateChange.NewState));
+                        Logger.Instance.WriteLine("；原因：" + ToString(pStateChange.Reason));
                         break;
                     case WlanHostedNetworkNotificationCode.PeerStateChange:
                         var pPeerStateChange = (WlanHostedNetworkDataPeerStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkDataPeerStateChange));
                         var lookup = Program.Lookup;
-                        InternalLog.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}",
+                        Logger.Instance.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}",
                                               ToString(pPeerStateChange.Reason),
                                               Program.GetDeviceDetails(pPeerStateChange.OldState, true, lookup),
                                               Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup),
@@ -197,16 +194,16 @@ namespace Mygod.WifiShare
                     case WlanHostedNetworkNotificationCode.RadioStateChange:
                         var pRadioState = (WlanHostedNetworkRadioState)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkRadioState));
-                        InternalLog.WriteLine("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
+                        Logger.Instance.WriteLine("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
                                               ToString(pRadioState.dot11SoftwareRadioState),
                                               ToString(pRadioState.dot11HardwareRadioState));
                         break;
                     default:
-                        InternalLog.WriteLine("具体事件未知。");
+                        Logger.Instance.WriteLine("具体事件未知。");
                         break;
                 }
-                InternalLog.WriteLine();
-                InternalLog.Flush();
+                Logger.Instance.WriteLine();
+                Logger.Instance.Flush();
             }
         }
 

@@ -104,9 +104,11 @@ namespace Mygod.WifiShare
                 var exc = e.ExceptionObject as Exception;
                 if (exc == null) return;
                 Console.WriteLine("出现了未知错误！详情请查看临时目录下 MygodWifiShare.log 日志文件。");
-                lock (WlanManager.InternalLog) WlanManager.InternalLog.Write("[{0}]\t{1}{2}",
-                    DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage(), Environment.NewLine);
+                if (Logger.Initialized)
+                    lock (Logger.Instance) Logger.Instance.Write("[{0}]\t{1}{2}",
+                        DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage(), Environment.NewLine);
             };
+            if (!Logger.Initialize()) return;
             Console.Title = CurrentApp.ProgramTitle;
             OutputRequirement();
             Console.WriteLine();
@@ -252,9 +254,9 @@ namespace Mygod.WifiShare
                 return;
             }
             virtualAdapter.NetConnectionID = "无线网络共享";
-            var mo = new ManagementObjectSearcher(
-                new SelectQuery("Win32_NetworkAdapterConfiguration", string.Format("SettingID='{0}'", virtualAdapter.GUID)))
-                .Get().OfType<ManagementObject>().SingleOrDefault();
+            var mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
+                                                  string.Format("SettingID='{0}'", virtualAdapter.GUID)))
+                            .Get().OfType<ManagementObject>().SingleOrDefault();
             if (mo == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。");
@@ -264,7 +266,8 @@ namespace Mygod.WifiShare
             mo.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
             mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { new[] { "8.8.8.8", "8.8.4.4" } });
             Console.WriteLine("搜索可用网络连接中……");
-            dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("5C63C1AD-3956-4FF8-8486-40034758315B")));
+            dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid
+                ("5C63C1AD-3956-4FF8-8486-40034758315B")));
             dynamic virtualConnection = null;
             var query = new List<Tuple<dynamic, dynamic>>();
             foreach (var connection in manager.EnumEveryConnection)
@@ -293,7 +296,8 @@ namespace Mygod.WifiShare
                     var conf = manager.INetSharingConfigurationForINetConnection[connection];
                     var props = manager.NetConnectionProps[connection];
                     if (conf.SharingEnabled && (props.Guid != query[picked].Item2 || conf.SharingConnectionType != 0)
-                        && (props.Guid != virtualAdapter.GUID && conf.SharingConnectionType != 1)) conf.DisableSharing();
+                        && (props.Guid != virtualAdapter.GUID && conf.SharingConnectionType != 1))
+                        conf.DisableSharing();
                 }
                 var tempConf = manager.INetSharingConfigurationForINetConnection[query[picked].Item1];
                 if (!tempConf.SharingEnabled) tempConf.EnableSharing(0);    // ICSSHARINGTYPE_PRIVATE
@@ -338,7 +342,8 @@ namespace Mygod.WifiShare
             Console.WriteLine("TTL：DNS 查询缓存时间，0 表示不缓存，若不明觉厉请最好不要修改。（单位：秒）");
             Console.WriteLine("旧的 TTL：" + Ttl);
             Console.Write("新的 TTL：");
-            if (int.TryParse(Console.ReadLine(), out Ttl) && Ttl >= 0) Registry.SetValue(RegistryPosition, RegistryTtl, Ttl);
+            if (int.TryParse(Console.ReadLine(), out Ttl) && Ttl >= 0)
+                Registry.SetValue(RegistryPosition, RegistryTtl, Ttl);
             if (!changed) return;
             Console.Write("修改完毕，是否要立即生效？(Y 生效，其他键不生效)");
             var ch = char.ToUpper(Console.ReadKey().KeyChar);
@@ -368,8 +373,8 @@ namespace Mygod.WifiShare
                 {
                     WlanHostedNetworkConnectionSettings cs;
                     opCode = WlanManager.QueryConnectionSettings(out cs);
-                    Console.WriteLine("托管网络连接设置来源：\t{0}\nSSID：\t\t\t{1}\n最大客户端数：\t\t{2}", WlanManager.ToString(opCode),
-                        cs.HostedNetworkSSID.Content, cs.MaxNumberOfPeers);
+                    Console.WriteLine("托管网络连接设置来源：\t{0}\nSSID：\t\t\t{1}\n最大客户端数：\t\t{2}",
+                                      WlanManager.ToString(opCode), cs.HostedNetworkSSID.Content, cs.MaxNumberOfPeers);
                 }
                 catch (BadConfigurationException)
                 {
@@ -383,7 +388,8 @@ namespace Mygod.WifiShare
                 {
                     string profile;
                     opCode = WlanManager.QueryStationProfile(out profile);
-                    Console.Write("托管网络配置文件来源：\t{0}\n配置文件：\n{1}", WlanManager.ToString(opCode), profile.Trim('\0'));
+                    Console.Write("托管网络配置文件来源：\t{0}\n配置文件：\n{1}",
+                                  WlanManager.ToString(opCode), profile.Trim('\0'));
                 }
                 catch (BadConfigurationException)
                 {
@@ -402,10 +408,12 @@ namespace Mygod.WifiShare
                 var status = WlanManager.QueryStatus();
                 Console.WriteLine("状态：\t\t\t" + WlanManager.ToString(status.HostedNetworkState));
                 if (status.HostedNetworkState == WlanHostedNetworkState.Unavailable) return;
-                Console.WriteLine("实际网络 ID：\t\t{0}\nBSSID：\t\t\t{1}", status.IPDeviceID, status.wlanHostedNetworkBSSID);
+                Console.WriteLine("实际网络 ID：\t\t{0}\nBSSID：\t\t\t{1}",
+                                  status.IPDeviceID, status.wlanHostedNetworkBSSID);
                 if (status.HostedNetworkState == WlanHostedNetworkState.Active)
                     Console.WriteLine("802.11 物理层类型：\t{0}\n网络接口信道频率：\t{1}\n已认证客户端数量：\t{2}",
-                                      WlanManager.ToString(status.dot11PhyType), status.ulChannelFrequency, status.dwNumberOfPeers);
+                                      WlanManager.ToString(status.dot11PhyType), status.ulChannelFrequency,
+                                      status.dwNumberOfPeers);
             });
         }
         public static ILookup<string, Arp.MibIpNetRow> Lookup
@@ -414,7 +422,8 @@ namespace Mygod.WifiShare
         public static string GetDeviceDetails(WlanHostedNetworkPeerState peer, bool wait = false,
                                               ILookup<string, Arp.MibIpNetRow> lookup = null, string padding = "")
         {
-            var result = string.Format("物理地址：{0} ({1})\n", peer.PeerMacAddress, WlanManager.ToString(peer.PeerAuthState));
+            var result = string.Format("物理地址：{0} ({1})\n", peer.PeerMacAddress,
+                                       WlanManager.ToString(peer.PeerAuthState));
             var ips = (lookup ?? Lookup)[peer.PeerMacAddress.ToString()].ToArray();
             if (ips.Length > 0) result += string.Format("{0}IP  地址：{1}\n", padding,
                 string.Join("\n          " + padding, ips.Select(ip =>
@@ -434,8 +443,8 @@ namespace Mygod.WifiShare
                 foreach (var peer in WlanManager.QueryStatus().PeerList)
                 {
                     i++;
-                    result.AppendFormat("设备 #{0} {1}", i,
-                        GetDeviceDetails(peer, wait, lookup, string.Empty.PadLeft(8 + (int) Math.Floor(Math.Log10(i)))));
+                    result.AppendFormat("设备 #{0} {1}", i, GetDeviceDetails(peer, wait, lookup,
+                        string.Empty.PadLeft(8 + (int) Math.Floor(Math.Log10(i)))));
                 }
                 return result.ToString();
             }
@@ -460,7 +469,7 @@ namespace Mygod.WifiShare
 
         private static void OutputLog()
         {
-            Process.Start(WlanManager.LogPath);
+            Process.Start(Logger.LogPath);
         }
         
         private static void OutputRequirement()

@@ -68,7 +68,8 @@ namespace Mygod.WifiShare
                         type = "静态";
                         break;
                 }
-                return string.IsNullOrWhiteSpace(type) ? IPAddress.ToString() : string.Format("{0} ({1})", IPAddress, type);
+                return string.IsNullOrWhiteSpace(type) ? IPAddress.ToString()
+                                                       : string.Format("{0} ({1})", IPAddress, type);
             }
         }
 
