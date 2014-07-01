@@ -17,16 +17,19 @@ namespace Mygod.WifiShare
             try
             {
                 uint serverVersion;
-                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanOpenHandle(2, IntPtr.Zero, out serverVersion, out WlanHandle));
+                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanOpenHandle(2, IntPtr.Zero, out serverVersion,
+                                            out WlanHandle));
                 // WLAN_CLIENT_VERSION_VISTA: Client version for Windows Vista and Windows Server 2008
                 WlanNotificationSource notifSource;
-                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle, WlanNotificationSource.All, true, Callback, IntPtr.Zero, IntPtr.Zero, out notifSource));
+                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle,
+                    WlanNotificationSource.All, true, Callback, IntPtr.Zero, IntPtr.Zero, out notifSource));
                 var failReason = InitSettings();
                 if (failReason != WlanHostedNetworkReason.Success)
                     throw new Exception("Init Error WlanHostedNetworkInitSettings: " + failReason);
                 AppDomain.CurrentDomain.DomainUnload += (sender, e) =>
                 {
-                    if (WlanHandle != IntPtr.Zero) Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero));
+                    if (WlanHandle != IntPtr.Zero)
+                        Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero));
                 };
             }
             catch
@@ -185,7 +188,8 @@ namespace Mygod.WifiShare
                         var pPeerStateChange = (WlanHostedNetworkDataPeerStateChange)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkDataPeerStateChange));
                         var lookup = Program.Lookup;
-                        InternalLog.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}", ToString(pPeerStateChange.Reason),
+                        InternalLog.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}",
+                                              ToString(pPeerStateChange.Reason),
                                               Program.GetDeviceDetails(pPeerStateChange.OldState, true, lookup),
                                               Program.GetDeviceDetails(pPeerStateChange.NewState, true, lookup),
                                               Environment.NewLine);
@@ -194,7 +198,8 @@ namespace Mygod.WifiShare
                         var pRadioState = (WlanHostedNetworkRadioState)
                             Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkRadioState));
                         InternalLog.WriteLine("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
-                            ToString(pRadioState.dot11SoftwareRadioState), ToString(pRadioState.dot11HardwareRadioState));
+                                              ToString(pRadioState.dot11SoftwareRadioState),
+                                              ToString(pRadioState.dot11HardwareRadioState));
                         break;
                     default:
                         InternalLog.WriteLine("具体事件未知。");
@@ -208,48 +213,53 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkReason ForceStart()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkForceStart(WlanHandle, out failReason, IntPtr.Zero));
-
+            Marshal.ThrowExceptionForHR
+                (WlanNativeMethods.WlanHostedNetworkForceStart(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
 
         public static WlanHostedNetworkReason ForceStop()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkForceStop(WlanHandle, out failReason, IntPtr.Zero));
-
+            Marshal.ThrowExceptionForHR
+                (WlanNativeMethods.WlanHostedNetworkForceStop(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
 
         private static WlanHostedNetworkReason InitSettings()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkInitSettings(WlanHandle, out failReason, IntPtr.Zero));
+            Marshal.ThrowExceptionForHR
+                (WlanNativeMethods.WlanHostedNetworkInitSettings(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
 
-        public static WlanHostedNetworkReason QuerySecondaryKey(out string passKey, out bool isPassPhrase, out bool isPersistent)
+        public static WlanHostedNetworkReason QuerySecondaryKey(out string passKey, out bool isPassPhrase,
+                                                                out bool isPersistent)
         {
             WlanHostedNetworkReason failReason;
             uint keyLen;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQuerySecondaryKey(WlanHandle, out keyLen, out passKey,
-                                            out isPassPhrase, out isPersistent, out failReason, IntPtr.Zero));
+            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQuerySecondaryKey(WlanHandle, out keyLen,
+                out passKey, out isPassPhrase, out isPersistent, out failReason, IntPtr.Zero));
             return failReason;
         }
 
-        public static WlanHostedNetworkReason SetSecondaryKey(string passKey, bool isPassPhrase = true, bool isPersistent = true)
+        public static WlanHostedNetworkReason SetSecondaryKey(string passKey, bool isPassPhrase = true,
+                                                              bool isPersistent = true)
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey(WlanHandle, (uint)(passKey.Length + 1), passKey,
-                                            isPassPhrase, isPersistent, out failReason, IntPtr.Zero));
+            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey (WlanHandle,
+                (uint)(passKey.Length + 1), passKey, isPassPhrase, isPersistent, out failReason, IntPtr.Zero));
             return failReason;
         }
 
         public static WlanHostedNetworkStatus QueryStatus()
         {
             IntPtr ptr;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryStatus(WlanHandle, out ptr, IntPtr.Zero));
-            var netStat = (WlanHostedNetworkStatusTemp)Marshal.PtrToStructure(ptr, typeof(WlanHostedNetworkStatusTemp));
+            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryStatus
+                                            (WlanHandle, out ptr, IntPtr.Zero));
+            var netStat = (WlanHostedNetworkStatusTemp)
+                Marshal.PtrToStructure(ptr, typeof(WlanHostedNetworkStatusTemp));
             var stat = new WlanHostedNetworkStatus();
             if ((stat.HostedNetworkState = netStat.HostedNetworkState) != WlanHostedNetworkState.Unavailable)
             {
@@ -262,21 +272,19 @@ namespace Mygod.WifiShare
                     stat.dwNumberOfPeers = netStat.NumberOfPeers;
                     stat.PeerList = new WlanHostedNetworkPeerState[stat.dwNumberOfPeers];
                     var offset = Marshal.SizeOf(typeof(WlanHostedNetworkStatusTemp));
-                    for (var i = 0; i < netStat.NumberOfPeers; i++)
-                        offset += Marshal.SizeOf(stat.PeerList[i] = (WlanHostedNetworkPeerState)Marshal.PtrToStructure(new IntPtr(ptr.ToInt64() + offset), typeof(WlanHostedNetworkPeerState)));
+                    for (var i = 0; i < netStat.NumberOfPeers; i++) offset += Marshal.SizeOf(stat.PeerList[i]
+                        = (WlanHostedNetworkPeerState)Marshal.PtrToStructure(new IntPtr(ptr.ToInt64() + offset),
+                                                                             typeof(WlanHostedNetworkPeerState)));
                 }
             }
             return stat;
         }
 
-        public static WlanHostedNetworkReason SetConnectionSettings(string hostedNetworkSSID, int maxNumberOfPeers)
+        public static WlanHostedNetworkReason SetConnectionSettings(string hostedNetworkSsid, int maxNumberOfPeers)
         {
             WlanHostedNetworkReason failReason;
             var settings = new WlanHostedNetworkConnectionSettings
-            {
-                HostedNetworkSSID = ToDOT11_SSID(hostedNetworkSSID),
-                MaxNumberOfPeers = (uint)maxNumberOfPeers
-            };
+                { HostedNetworkSSID = ToDOT11_SSID(hostedNetworkSsid), MaxNumberOfPeers = (uint)maxNumberOfPeers };
             var settingsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(settings));
             Marshal.StructureToPtr(settings, settingsPtr, false);
             Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
@@ -299,7 +307,8 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkReason RefreshSecuritySettings()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkRefreshSecuritySettings(WlanHandle, out failReason, IntPtr.Zero));
+            Marshal.ThrowExceptionForHR
+                (WlanNativeMethods.WlanHostedNetworkRefreshSecuritySettings(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
 

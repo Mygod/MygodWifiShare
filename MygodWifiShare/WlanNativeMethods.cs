@@ -16,25 +16,26 @@ namespace Mygod.WifiShare
         public static extern int WlanCloseHandle([In] IntPtr hClientHandle, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkForceStart")]
-        public static extern int WlanHostedNetworkForceStart(IntPtr hClientHandle, [Out] out WlanHostedNetworkReason pFailReason,
-            IntPtr pReserved);
+        public static extern int WlanHostedNetworkForceStart(IntPtr hClientHandle,
+            [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkForceStop")]
-        public static extern int WlanHostedNetworkForceStop(IntPtr hClientHandle, [Out] out WlanHostedNetworkReason pFailReason,
-            IntPtr pReserved);
+        public static extern int WlanHostedNetworkForceStop(IntPtr hClientHandle,
+            [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkInitSettings")]
-        public static extern int WlanHostedNetworkInitSettings(IntPtr hClientHandle, [Out] out WlanHostedNetworkReason pFailReason,
-            IntPtr pReserved);
+        public static extern int WlanHostedNetworkInitSettings(IntPtr hClientHandle,
+            [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkQueryProperty")]
-        public static extern int WlanHostedNetworkQueryProperty(IntPtr hClientHandle, WlanHostedNetworkOpcode opCode, [Out] out uint pDataSize,
-            [Out] out IntPtr ppvData, [Out] out WlanOpcodeValueType pWlanOpcodeValueType, IntPtr pReserved);
+        public static extern int WlanHostedNetworkQueryProperty(IntPtr hClientHandle, WlanHostedNetworkOpcode opCode,
+            [Out] out uint pDataSize, [Out] out IntPtr ppvData, [Out] out WlanOpcodeValueType pWlanOpcodeValueType,
+            IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkQuerySecondaryKey")]
         public static extern int WlanHostedNetworkQuerySecondaryKey(IntPtr hClientHandle, [Out] out uint pKeyLength,
-            [Out, MarshalAs(UnmanagedType.LPStr)] out string ppucKeyData,
-            [Out] out bool pbIsPassPhrase, [Out] out bool pbPersistent, [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
+            [Out, MarshalAs(UnmanagedType.LPStr)] out string ppucKeyData, [Out] out bool pbIsPassPhrase,
+            [Out] out bool pbPersistent, [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkQueryStatus")]
         public static extern int WlanHostedNetworkQueryStatus(IntPtr hClientHandle,
@@ -54,8 +55,8 @@ namespace Mygod.WifiShare
             bool bIsPassPhrase, bool bPersistent, [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanOpenHandle")]
-        public static extern int WlanOpenHandle(uint dwClientVersion, IntPtr pReserved, [Out] out uint pdwNegotiatedVersion,
-            [Out] out IntPtr clientHandle);
+        public static extern int WlanOpenHandle(uint dwClientVersion, IntPtr pReserved,
+            [Out] out uint pdwNegotiatedVersion, [Out] out IntPtr clientHandle);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanRegisterNotification")]
         public static extern int WlanRegisterNotification(IntPtr hClientHandle, WlanNotificationSource dwNotifSource,
@@ -86,12 +87,6 @@ namespace Mygod.WifiShare
 
         /// DOT11_AUTH_ALGO_RSNA_PSK -> 7
         RsnaPsk = 7,
-
-        /// DOT11_AUTH_ALGO_IHV_START -> 0x80000000
-        IhvStart = -2147483648,
-
-        /// DOT11_AUTH_ALGO_IHV_END -> 0xffffffff
-        IhvEnd = -1,
     }
 
     public enum Dot11CipherAlgorithm
@@ -114,17 +109,8 @@ namespace Mygod.WifiShare
         /// DOT11_CIPHER_ALGO_WPA_USE_GROUP -> 0x100
         WpaUseGroup = 256,
 
-        /// DOT11_CIPHER_ALGO_RSN_USE_GROUP -> 0x100
-        RsnUseGroup = 256,
-
         /// DOT11_CIPHER_ALGO_WEP -> 0x101
         Wep = 257,
-
-        /// DOT11_CIPHER_ALGO_IHV_START -> 0x80000000
-        IhvStart = -2147483648,
-
-        /// DOT11_CIPHER_ALGO_IHV_END -> 0xffffffff
-        IhvEnd = -1,
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -145,8 +131,6 @@ namespace Mygod.WifiShare
 
     public enum Dot11PhyType : uint
     {
-        Unknown = 0,
-        Any = 0,
         Fhss = 1,
         Dsss = 2,
         Irbaseband = 3,
@@ -154,9 +138,7 @@ namespace Mygod.WifiShare
         Hrdsss = 5,
         Erp = 6,
         Ht = 7,
-        Vht = 8,
-        IhvStart = 0x80000000,
-        IhvEnd = 0xffffffff
+        Vht = 8
     }
 
     //http://msdn.microsoft.com/en-us/library/ms706027%28VS.85%29.aspx
@@ -337,22 +319,18 @@ namespace Mygod.WifiShare
         /// <summary>
         ///     Specifies where the notification comes from.
         /// </summary>
-        /// <remarks>
-        ///     On Windows XP SP2, this field must be set to <see cref="WlanNotificationSource.None" />,
-        ///     <see cref="WlanNotificationSource.All" /> or <see cref="WlanNotificationSource.Acm" />.
-        /// </remarks>
         public readonly WlanNotificationSource notificationSource;
 
         /// <summary>
-        ///     Indicates the type of notification. The value of this field indicates what type of associated data will be present
-        ///     in <see cref="dataPtr" />.
+        ///     Indicates the type of notification. The value of this field indicates what type of associated data will
+        ///     be present in <see cref="dataPtr" />.
         /// </summary>
         public readonly int notificationCode;
 
         /// <summary>
         ///     Indicates which interface the notification is for.
         /// </summary>
-        public Guid interfaceGuid;
+        private readonly Guid interfaceGuid;
 
         /// <summary>
         ///     Specifies the size of <see cref="dataPtr" />, in bytes.
@@ -360,7 +338,8 @@ namespace Mygod.WifiShare
         public readonly int dataSize;
 
         /// <summary>
-        ///     Pointer to additional data needed for the notification, as indicated by <see cref="notificationCode" />.
+        ///     Pointer to additional data needed for the notification, as indicated by
+        /// <see cref="notificationCode" />.
         /// </summary>
         public IntPtr dataPtr;
     }
@@ -371,37 +350,10 @@ namespace Mygod.WifiShare
     [Flags]
     public enum WlanNotificationSource : uint
     {
-        None = 0,
-
         /// <summary>
         ///     All notifications, including those generated by the 802.1X module.
         /// </summary>
         All = 0X0000FFFF,
-
-        /// <summary>
-        ///     Notifications generated by the 802.1X module.
-        /// </summary>
-        Onex = 0X00000004,
-
-        /// <summary>
-        ///     Notifications generated by the auto configuration module.
-        /// </summary>
-        Acm = 0X00000008,
-
-        /// <summary>
-        ///     Notifications generated by MSM.
-        /// </summary>
-        Msm = 0X00000010,
-
-        /// <summary>
-        ///     Notifications generated by the security module.
-        /// </summary>
-        Security = 0X00000020,
-
-        /// <summary>
-        ///     Notifications generated by independent hardware vendors (IHV).
-        /// </summary>
-        Ihv = 0X00000040,
 
         /// <summary>
         ///     Notifications generated by the wireless Hosted Network.

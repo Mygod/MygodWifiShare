@@ -145,7 +145,7 @@ namespace Mygod.WifiShare
         private DateTime cacheTime = DateTime.MinValue;
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-        public bool Decayed { get { return (DateTime.Now - cacheTime).TotalSeconds >= Program.TTL; } }
+        public bool Decayed { get { return (DateTime.Now - cacheTime).TotalSeconds >= Program.Ttl; } }
     }
     sealed class DnsCache : KeyedCollection<IPAddress, DnsCacheEntry>
     {

@@ -11,8 +11,19 @@ using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
 using Mygod.Net;
+using Mygod.Windows;
 using ROOT.CIMV2.Win32;
 using Action = System.Action;
+
+namespace Mygod.Windows
+{
+    static class CurrentApp
+    {
+        private static AssemblyName NowAssemblyName { get { return Assembly.GetCallingAssembly().GetName(); } }
+        public static Version Version { get { return NowAssemblyName.Version; } }
+        public static string ProgramTitle { get { return NowAssemblyName.Name + @" V" + Version; } }
+    }
+}
 
 namespace Mygod.WifiShare
 {
@@ -78,13 +89,12 @@ namespace Mygod.WifiShare
 
     static class Program
     {
-        private static AssemblyName NowAssemblyName { get { return Assembly.GetCallingAssembly().GetName(); } }
-        private static string ProgramTitle { get { return NowAssemblyName.Name + @" V" + NowAssemblyName.Version; } }
-        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\", RegistrySSID = "SSID",
-                             RegistryKey = "Key", RegistryPeersCount = "PeersCount", RegistryTTL = "TTL", TaskName = "MygodWifiShare";
+        private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\", RegistrySsid = "SSID",
+                             RegistryKey = "Key", RegistryPeersCount = "PeersCount", RegistryTtl = "TTL",
+                             TaskName = "MygodWifiShare";
         private static string ssid, key;
         private static int peersCount;
-        internal static int TTL;
+        internal static int Ttl;
         private static readonly DnsCache DnsCache = new DnsCache();
 
         private static void Main(string[] args)
@@ -97,7 +107,7 @@ namespace Mygod.WifiShare
                 lock (WlanManager.InternalLog) WlanManager.InternalLog.Write("[{0}]\t{1}{2}",
                     DateTime.Now.ToString("yyyy.M.d H:mm:ss"), exc.GetMessage(), Environment.NewLine);
             };
-            Console.Title = ProgramTitle;
+            Console.Title = CurrentApp.ProgramTitle;
             OutputRequirement();
             Console.WriteLine();
             if (CheckOS()) return;
@@ -310,7 +320,7 @@ namespace Mygod.WifiShare
             var changed = false;
             if (!string.IsNullOrEmpty(ssid)) 
             { 
-                Registry.SetValue(RegistryPosition, RegistrySSID, ssid);
+                Registry.SetValue(RegistryPosition, RegistrySsid, ssid);
                 changed = true;
             }
             if (key != null && key.Length >= 8 && key.Length < 64)
@@ -326,9 +336,9 @@ namespace Mygod.WifiShare
                 changed = true;
             }
             Console.WriteLine("TTL：DNS 查询缓存时间，0 表示不缓存，若不明觉厉请最好不要修改。（单位：秒）");
-            Console.WriteLine("旧的 TTL：" + TTL);
+            Console.WriteLine("旧的 TTL：" + Ttl);
             Console.Write("新的 TTL：");
-            if (int.TryParse(Console.ReadLine(), out TTL) && TTL >= 0) Registry.SetValue(RegistryPosition, RegistryTTL, TTL);
+            if (int.TryParse(Console.ReadLine(), out Ttl) && Ttl >= 0) Registry.SetValue(RegistryPosition, RegistryTtl, Ttl);
             if (!changed) return;
             Console.Write("修改完毕，是否要立即生效？(Y 生效，其他键不生效)");
             var ch = char.ToUpper(Console.ReadKey().KeyChar);
@@ -339,7 +349,7 @@ namespace Mygod.WifiShare
         }
         private static void CheckForUpdates()
         {
-            WebsiteManager.CheckForUpdates(223, () => Console.WriteLine("没有可用更新。"),
+            WebsiteManager.CheckForUpdates(() => Console.WriteLine("没有可用更新。"),
                                            exc => Console.WriteLine("检查更新失败。\n错误信息：" + exc.GetMessage()));
         }
         private static void ShowHelp()
@@ -400,6 +410,7 @@ namespace Mygod.WifiShare
         }
         public static ILookup<string, Arp.MibIpNetRow> Lookup
             { get { return Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row); }}
+
         public static string GetDeviceDetails(WlanHostedNetworkPeerState peer, bool wait = false,
                                               ILookup<string, Arp.MibIpNetRow> lookup = null, string padding = "")
         {
@@ -408,7 +419,7 @@ namespace Mygod.WifiShare
             if (ips.Length > 0) result += string.Format("{0}IP  地址：{1}\n", padding,
                 string.Join("\n          " + padding, ips.Select(ip =>
                 {
-                    var domains = DnsCache.GetDomains(ip.IPAddress, wait || TTL == 0);
+                    var domains = DnsCache.GetDomains(ip.IPAddress, wait || Ttl == 0);
                     return ip.ToString() + (domains == null ? string.Empty : (" [" + domains + ']'));
                 })));
             return result;
@@ -454,7 +465,7 @@ namespace Mygod.WifiShare
         
         private static void OutputRequirement()
         {
-            Console.WriteLine(R.Requirement, ProgramTitle);
+            Console.WriteLine(R.Requirement, CurrentApp.ProgramTitle);
             Console.WriteLine();
             Console.WriteLine(R.QuickHelp);
         }
@@ -462,13 +473,13 @@ namespace Mygod.WifiShare
         {
             try
             {
-                ssid = (string)Registry.GetValue(RegistryPosition, RegistrySSID, null);
+                ssid = (string)Registry.GetValue(RegistryPosition, RegistrySsid, null);
             }
             catch (FormatException)
             {
                 ssid = null;
             }
-            if (ssid == null) Registry.SetValue(RegistryPosition, RegistrySSID, ssid = "Mygod Hotspot");
+            if (ssid == null) Registry.SetValue(RegistryPosition, RegistrySsid, ssid = "Mygod Hotspot");
             try
             {
                 key = (string)Registry.GetValue(RegistryPosition, RegistryKey, null);
@@ -489,18 +500,18 @@ namespace Mygod.WifiShare
             if (peersCount < 0) Registry.SetValue(RegistryPosition, RegistryPeersCount, peersCount = 100);
             try
             {
-                TTL = (int)Registry.GetValue(RegistryPosition, RegistryTTL, null);
+                Ttl = (int)Registry.GetValue(RegistryPosition, RegistryTtl, null);
             }
             catch
             {
-                TTL = -1;
+                Ttl = -1;
             }
-            if (TTL < 0) Registry.SetValue(RegistryPosition, RegistryTTL, TTL = 300);
+            if (Ttl < 0) Registry.SetValue(RegistryPosition, RegistryTtl, Ttl = 300);
         }
         private static char ReadOperation()
         {
             UpdateSettings();
-            Console.Write(R.WelcomeToUse, ProgramTitle);
+            Console.Write(R.WelcomeToUse, CurrentApp.ProgramTitle);
             var result = char.ToUpper(Console.ReadKey().KeyChar);
             Console.WriteLine();
             return result;
