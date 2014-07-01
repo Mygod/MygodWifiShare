@@ -152,8 +152,9 @@ namespace Mygod.WifiShare
         public string GetDomains(IPAddress ip, bool wait = false)
         {
             DnsCacheEntry entry;
-            if (Contains(ip)) entry = this[ip];
-            else Add(entry = new DnsCacheEntry(ip));
+            lock (this)
+                if (Contains(ip)) entry = this[ip];
+                else Add(entry = new DnsCacheEntry(ip));
             if (entry.Decayed)
                 if (wait) entry.Update();
                 else entry.UpdateAsync();
