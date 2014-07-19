@@ -437,10 +437,13 @@ namespace Mygod.WifiShare
         {
             try
             {
+                var status = WlanManager.QueryStatus();
+                if (status.HostedNetworkState != WlanHostedNetworkState.Active)
+                    return "查询客户端失败，托管网络尚未启用。";
                 var result = new StringBuilder();
                 var lookup = Lookup;
                 var i = 0;
-                foreach (var peer in WlanManager.QueryStatus().PeerList)
+                foreach (var peer in status.PeerList)
                 {
                     i++;
                     result.AppendFormat("设备 #{0} {1}", i, GetDeviceDetails(peer, wait, lookup,
