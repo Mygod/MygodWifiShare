@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
@@ -158,7 +157,7 @@ namespace Mygod.WifiShare
             var ae = e as AggregateException;
             if (ae != null) foreach (var ex in ae.InnerExceptions) GetMessage(ex, result);
         }
-        private static void Try(Action tryAction, Action failAction = null)
+        private static void Try(Action tryAction, Action failAction = null, string prefix = "未知错误")
         {
             try
             {
@@ -166,7 +165,7 @@ namespace Mygod.WifiShare
             }
             catch (Exception exc)
             {
-                Console.WriteLine("未知错误：" + exc.GetMessage());
+                Console.WriteLine(prefix + '：' + exc.GetMessage());
                 if (failAction != null) failAction();
             }
         }
@@ -196,22 +195,42 @@ namespace Mygod.WifiShare
             }
             Console.WriteLine("修改自动运行完成。");
         }
-        private static void RestartInternetConnectionSharingService()
+        private static readonly string DeepRestartPrefix = "重启服务时出现错误";
+        private static void DeepRestart()
         {
-            try
+            ServiceController sa = new ServiceController("SharedAccess"), w = new ServiceController("Wlansvc");
+            Try(() =>
             {
-                var service = new ServiceController("SharedAccess");
-                Console.WriteLine("正在停止服务 {0}……", service.DisplayName);
-                service.Stop();
-                service.WaitForStatus(ServiceControllerStatus.Stopped, new TimeSpan(0, 1, 0));
-                Console.WriteLine("正在启动服务 {0}……", service.DisplayName);
-                service.Start();
-                service.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
-            }
-            catch (Exception exc)
+                Console.WriteLine("正在停止服务 {0}……", sa.DisplayName);
+                if (sa.Status != ServiceControllerStatus.StopPending && sa.Status != ServiceControllerStatus.Stopped)
+                    sa.Stop();
+                sa.WaitForStatus(ServiceControllerStatus.Stopped, new TimeSpan(0, 1, 0));
+                Console.WriteLine("正在停止服务 {0}……", w.DisplayName);
+                if (w.Status != ServiceControllerStatus.StopPending && w.Status != ServiceControllerStatus.Stopped)
+                    w.Stop();
+                w.WaitForStatus(ServiceControllerStatus.Stopped, new TimeSpan(0, 1, 0));
+                Console.WriteLine("正在重置相关配置……");
+                using (var rk = Registry.LocalMachine.OpenSubKey
+                    (@"SYSTEM\CurrentControlSet\services\Wlansvc\Parameters\HostedNetworkSettings", true))
+                    if (rk != null)
+                    {
+                        rk.DeleteValue("EncryptedSettings");
+                        rk.DeleteValue("HostedNetworkSettings");
+                    }
+            }, prefix: DeepRestartPrefix);
+            Try(() =>
             {
-                Console.WriteLine("重启服务时出现错误：{0}", exc.Message);
-            }
+                Console.WriteLine("正在启动服务 {0}……", sa.DisplayName);
+                sa.Start();
+                sa.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
+            }, prefix: DeepRestartPrefix);
+            Try(() =>
+            {
+                Console.WriteLine("正在启动服务 {0}……", w.DisplayName);
+                w.Start();
+                w.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
+            }, prefix: DeepRestartPrefix);
+            WlanManager.Restart();
         }
         private static void Close()
         {
@@ -565,7 +584,7 @@ namespace Mygod.WifiShare
                     Close();
                     break;
                 case 'D':
-                    RestartInternetConnectionSharingService();
+                    DeepRestart();
                     Boot();
                     break;
                 case 'H':
