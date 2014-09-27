@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Reflection;
@@ -91,10 +92,17 @@ namespace Mygod.WifiShare
         private const string RegistryPosition = @"HKEY_CURRENT_USER\Software\Mygod\ShareWifi\", RegistrySsid = "SSID",
                              RegistryKey = "Key", RegistryPeersCount = "PeersCount", RegistryTtl = "TTL",
                              TaskName = "MygodWifiShare";
-        private static string ssid, key;
+
+        private static string ssid;
+        private static object key;
         private static int peersCount;
         internal static int Ttl;
         private static readonly DnsCache DnsCache = new DnsCache();
+
+        private static string GetKey()
+        {
+            return key as string ?? BitConverter.ToString((byte[])key).Replace("-", string.Empty);
+        }
 
         private static void Main(string[] args)
         {
@@ -231,7 +239,8 @@ namespace Mygod.WifiShare
                     Close();
                     return;
                 }
-                WriteReason(reason = WlanManager.SetSecondaryKey(key));
+                WriteReason(reason = key is string ? WlanManager.SetSecondaryKey((string) key)
+                                                   : WlanManager.SetSecondaryKey((byte[]) key));
                 if (reason != WlanHostedNetworkReason.Success)
                 {
                     Close();
@@ -313,23 +322,38 @@ namespace Mygod.WifiShare
         }
         private static void Settings()
         {
-            Console.WriteLine("请输入您的新的设置，为空则不修改。无线网络名为 1-32 个 ANSI 字符，无线网络密码为 8-63 个 ASCII 字符。");
+            Console.WriteLine("请输入您的新的设置，为空或错误的输入则表示不修改。无线网络名为 1-32 个 ANSI 字符，" +
+                              "无线网络密码为 8-63 个 ASCII 字符或长度为 64 的十六进制数。");
             Console.WriteLine("旧的无线网络名：" + ssid);
             Console.Write("新的无线网络名：");
             ssid = Console.ReadLine();
-            Console.WriteLine("旧的无线密码：" + key);
+            Console.WriteLine("旧的无线密码：" + GetKey());
             Console.Write("新的无线密码：");
-            key = Console.ReadLine();
+            var newKey = Console.ReadLine();
             var changed = false;
             if (!string.IsNullOrEmpty(ssid) && Encoding.Default.GetByteCount(ssid) <= 32) 
-            { 
+            {
                 Registry.SetValue(RegistryPosition, RegistrySsid, ssid);
                 changed = true;
             }
-            if (key != null && key.Length >= 8 && key.Length < 64)
+            if (newKey != null && newKey.Length >= 8 && newKey.Length <= 64 && newKey.All(c => c < 128))
             {
-                Registry.SetValue(RegistryPosition, RegistryKey, key);
-                changed = true;
+                if (newKey.Length == 64)
+                {
+                    var binaryKey = new byte[32];
+                    try
+                    {
+                        for (var i = 0; i < 32; ++i) binaryKey[i] = Convert.ToByte(newKey.Substring(i + i, 2), 16);
+                        Registry.SetValue(RegistryPosition, RegistryKey, key = binaryKey);
+                        changed = true;
+                    }
+                    catch { }
+                }
+                else
+                {
+                    Registry.SetValue(RegistryPosition, RegistryKey, key = newKey);
+                    changed = true;
+                }
             }
             Console.WriteLine("旧的最大客户端数：" + peersCount);
             Console.Write("新的最大客户端数：");
@@ -493,7 +517,7 @@ namespace Mygod.WifiShare
             if (ssid == null) Registry.SetValue(RegistryPosition, RegistrySsid, ssid = "Mygod Hotspot");
             try
             {
-                key = (string)Registry.GetValue(RegistryPosition, RegistryKey, null);
+                key = Registry.GetValue(RegistryPosition, RegistryKey, null);
             }
             catch (FormatException)
             {

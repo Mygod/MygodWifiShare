@@ -51,8 +51,8 @@ namespace Mygod.WifiShare
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanHostedNetworkSetSecondaryKey")]
         public static extern int WlanHostedNetworkSetSecondaryKey(IntPtr hClientHandle, uint dwKeyLength,
-            [In, MarshalAs(UnmanagedType.LPStr)] string pucKeyData,
-            bool bIsPassPhrase, bool bPersistent, [Out] out WlanHostedNetworkReason pFailReason, IntPtr pReserved);
+            byte[] pucKeyData, bool bIsPassPhrase, bool bPersistent, [Out] out WlanHostedNetworkReason pFailReason,
+            IntPtr pReserved);
 
         [DllImport("Wlanapi.dll", EntryPoint = "WlanOpenHandle")]
         public static extern int WlanOpenHandle(uint dwClientVersion, IntPtr pReserved,

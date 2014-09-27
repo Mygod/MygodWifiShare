@@ -250,12 +250,19 @@ namespace Mygod.WifiShare
             return failReason;
         }
 
-        public static WlanHostedNetworkReason SetSecondaryKey(string passKey, bool isPassPhrase = true,
-                                                              bool isPersistent = true)
+        public static WlanHostedNetworkReason SetSecondaryKey(string passKey, bool isPersistent = true)
         {
             WlanHostedNetworkReason failReason;
             Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey(WlanHandle,
-                (uint)(passKey.Length + 1), passKey, isPassPhrase, isPersistent, out failReason, IntPtr.Zero));
+                (uint)(passKey.Length + 1), Encoding.Default.GetBytes(passKey), true, isPersistent, out failReason,
+                IntPtr.Zero));
+            return failReason;
+        }
+        public static WlanHostedNetworkReason SetSecondaryKey(byte[] passKey, bool isPersistent = true)
+        {
+            WlanHostedNetworkReason failReason;
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey(WlanHandle,
+                                       32, passKey, false, isPersistent, out failReason, IntPtr.Zero));
             return failReason;
         }
 
