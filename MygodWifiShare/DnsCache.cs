@@ -81,12 +81,12 @@ namespace Mygod.WifiShare
         public static IEnumerable<MibIpNetRow> GetIpNetTable()
         {
             int bytesNeeded = 0, result = GetIpNetTable(IntPtr.Zero, ref bytesNeeded, false);
-            if (result != 122) Marshal.ThrowExceptionForHR(result);
+            if (result != 122) Helper.ThrowExceptionForHR(result);
             var buffer = IntPtr.Zero;
             try
             {
                 buffer = Marshal.AllocCoTaskMem(bytesNeeded);
-                Marshal.ThrowExceptionForHR(GetIpNetTable(buffer, ref bytesNeeded, false));
+                Helper.ThrowExceptionForHR(GetIpNetTable(buffer, ref bytesNeeded, false));
                 int entries = Marshal.ReadInt32(buffer), offset = Marshal.SizeOf(typeof(MibIpNetRow));
                 var ptr = new IntPtr(buffer.ToInt64() + 4 - offset);
                 for (var index = 0; index < entries; index++)

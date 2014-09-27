@@ -1,9 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Mygod.WifiShare
 {
+    public static class Helper
+    {
+        public static void ThrowExceptionForHR(int code)
+        {
+            Marshal.ThrowExceptionForHR(code);
+            if (code != 0) throw new COMException("COM failed: " + code, code);
+        }
+    }
+
     public static class WlanManager
     {
         private static readonly IntPtr WlanHandle;
@@ -11,14 +21,15 @@ namespace Mygod.WifiShare
 
         static WlanManager()
         {
+            var failed = true;
             try
             {
                 uint serverVersion;
-                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanOpenHandle(2, IntPtr.Zero, out serverVersion,
-                                            out WlanHandle));
+                Helper.ThrowExceptionForHR(WlanNativeMethods.WlanOpenHandle(2, IntPtr.Zero, out serverVersion,
+                                           out WlanHandle));
                 // WLAN_CLIENT_VERSION_VISTA: Client version for Windows Vista and Windows Server 2008
                 WlanNotificationSource notifSource;
-                Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle,
+                Helper.ThrowExceptionForHR(WlanNativeMethods.WlanRegisterNotification(WlanHandle,
                     WlanNotificationSource.All, true, Callback, IntPtr.Zero, IntPtr.Zero, out notifSource));
                 var failReason = InitSettings();
                 if (failReason != WlanHostedNetworkReason.Success)
@@ -26,23 +37,21 @@ namespace Mygod.WifiShare
                 AppDomain.CurrentDomain.DomainUnload += (sender, e) =>
                 {
                     if (WlanHandle != IntPtr.Zero)
-                        Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero));
+                        Helper.ThrowExceptionForHR(WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero));
                 };
+                failed = false;
             }
-            catch
+            finally
             {
-                WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero);
-                throw;
+                if (failed) WlanNativeMethods.WlanCloseHandle(WlanHandle, IntPtr.Zero);
             }
         }
 
         private static Ssid ToDOT11_SSID(string ssid)
         {
-            return new Ssid
-            {
-                Content = ssid,
-                Length = ssid.Length
-            };
+            var length = Encoding.Default.GetByteCount(ssid);
+            if (length > 32) throw new ArgumentException("SSID 过长。");
+            return new Ssid { Content = ssid, Length = length };
         }
         public static string ToString(WlanHostedNetworkReason reason)
         {
@@ -210,7 +219,7 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkReason ForceStart()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR
+            Helper.ThrowExceptionForHR
                 (WlanNativeMethods.WlanHostedNetworkForceStart(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -218,7 +227,7 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkReason ForceStop()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR
+            Helper.ThrowExceptionForHR
                 (WlanNativeMethods.WlanHostedNetworkForceStop(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -226,7 +235,7 @@ namespace Mygod.WifiShare
         private static WlanHostedNetworkReason InitSettings()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR
+            Helper.ThrowExceptionForHR
                 (WlanNativeMethods.WlanHostedNetworkInitSettings(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -236,7 +245,7 @@ namespace Mygod.WifiShare
         {
             WlanHostedNetworkReason failReason;
             uint keyLen;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQuerySecondaryKey(WlanHandle, out keyLen,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQuerySecondaryKey(WlanHandle, out keyLen,
                 out passKey, out isPassPhrase, out isPersistent, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -245,7 +254,7 @@ namespace Mygod.WifiShare
                                                               bool isPersistent = true)
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey (WlanHandle,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetSecondaryKey(WlanHandle,
                 (uint)(passKey.Length + 1), passKey, isPassPhrase, isPersistent, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -253,7 +262,7 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkStatus QueryStatus()
         {
             IntPtr ptr;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryStatus
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryStatus
                                             (WlanHandle, out ptr, IntPtr.Zero));
             var netStat = (WlanHostedNetworkStatusTemp)
                 Marshal.PtrToStructure(ptr, typeof(WlanHostedNetworkStatusTemp));
@@ -284,7 +293,7 @@ namespace Mygod.WifiShare
                 { HostedNetworkSSID = ToDOT11_SSID(hostedNetworkSsid), MaxNumberOfPeers = (uint)maxNumberOfPeers };
             var settingsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(settings));
             Marshal.StructureToPtr(settings, settingsPtr, false);
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
                                         WlanHostedNetworkOpcode.ConnectionSettings,
                                         (uint)Marshal.SizeOf(settings), settingsPtr, out failReason, IntPtr.Zero));
             return failReason;
@@ -295,7 +304,7 @@ namespace Mygod.WifiShare
             WlanHostedNetworkReason failReason;
             var settingsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(enabled));
             Marshal.StructureToPtr(enabled, settingsPtr, false);
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkSetProperty(WlanHandle,
                                         WlanHostedNetworkOpcode.Enable,
                                         (uint)Marshal.SizeOf(enabled), settingsPtr, out failReason, IntPtr.Zero));
             return failReason;
@@ -304,7 +313,7 @@ namespace Mygod.WifiShare
         public static WlanHostedNetworkReason RefreshSecuritySettings()
         {
             WlanHostedNetworkReason failReason;
-            Marshal.ThrowExceptionForHR
+            Helper.ThrowExceptionForHR
                 (WlanNativeMethods.WlanHostedNetworkRefreshSecuritySettings(WlanHandle, out failReason, IntPtr.Zero));
             return failReason;
         }
@@ -318,7 +327,7 @@ namespace Mygod.WifiShare
                 WlanHostedNetworkOpcode.ConnectionSettings,
                 out dataSize, out dataPtr, out opcode, IntPtr.Zero);
             if (hr == 1610) throw new BadConfigurationException();
-            Marshal.ThrowExceptionForHR(hr);
+            Helper.ThrowExceptionForHR(hr);
             settings = (WlanHostedNetworkConnectionSettings)
                 Marshal.PtrToStructure(dataPtr, typeof(WlanHostedNetworkConnectionSettings));
             return opcode;
@@ -329,7 +338,7 @@ namespace Mygod.WifiShare
             uint dataSize;
             IntPtr dataPtr;
             WlanOpcodeValueType opcode;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(WlanHandle,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(WlanHandle,
                                         WlanHostedNetworkOpcode.SecuritySettings,
                                         out dataSize, out dataPtr, out opcode, IntPtr.Zero));
             settings = (WlanHostedNetworkSecuritySettings)
@@ -346,7 +355,7 @@ namespace Mygod.WifiShare
                 WlanHostedNetworkOpcode.StationProfile,
                 out dataSize, out dataPtr, out opcode, IntPtr.Zero);
             if (hr == 1610) throw new BadConfigurationException();
-            Marshal.ThrowExceptionForHR(hr);
+            Helper.ThrowExceptionForHR(hr);
             profile = Marshal.PtrToStringUni(dataPtr, (int)(dataSize >> 1));
             return opcode;
         }
@@ -356,7 +365,7 @@ namespace Mygod.WifiShare
             uint dataSize;
             IntPtr dataPtr;
             WlanOpcodeValueType opcode;
-            Marshal.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(WlanHandle,
+            Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(WlanHandle,
                                         WlanHostedNetworkOpcode.Enable,
                                         out dataSize, out dataPtr, out opcode, IntPtr.Zero));
             enabled = (bool)Marshal.PtrToStructure(dataPtr, typeof(bool));

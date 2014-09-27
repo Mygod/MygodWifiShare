@@ -313,7 +313,7 @@ namespace Mygod.WifiShare
         }
         private static void Settings()
         {
-            Console.WriteLine("请输入您的新的设置，为空则不修改。");
+            Console.WriteLine("请输入您的新的设置，为空则不修改。无线网络名为 1-32 个 ANSI 字符，无线网络密码为 8-63 个 ASCII 字符。");
             Console.WriteLine("旧的无线网络名：" + ssid);
             Console.Write("新的无线网络名：");
             ssid = Console.ReadLine();
@@ -321,7 +321,7 @@ namespace Mygod.WifiShare
             Console.Write("新的无线密码：");
             key = Console.ReadLine();
             var changed = false;
-            if (!string.IsNullOrEmpty(ssid)) 
+            if (!string.IsNullOrEmpty(ssid) && Encoding.Default.GetByteCount(ssid) <= 32) 
             { 
                 Registry.SetValue(RegistryPosition, RegistrySsid, ssid);
                 changed = true;
