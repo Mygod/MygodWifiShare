@@ -220,15 +220,15 @@ namespace Mygod.WifiShare
             }, prefix: DeepRestartPrefix);
             Try(() =>
             {
-                Console.WriteLine("正在启动服务 {0}……", sa.DisplayName);
-                sa.Start();
-                sa.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
-            }, prefix: DeepRestartPrefix);
-            Try(() =>
-            {
                 Console.WriteLine("正在启动服务 {0}……", w.DisplayName);
                 w.Start();
                 w.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
+            }, prefix: DeepRestartPrefix);
+            Try(() =>
+            {
+                Console.WriteLine("正在启动服务 {0}……", sa.DisplayName);
+                sa.Start();
+                sa.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
             }, prefix: DeepRestartPrefix);
             WlanManager.Restart();
         }
@@ -500,13 +500,16 @@ namespace Mygod.WifiShare
         }
         private static void WatchCurrentDevices()
         {
+            string previous = null;
             while (true)
             {
                 if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Escape) break;
                 var result = QueryCurrentDevices();
+                if (result == previous) continue;
+                previous = result;
                 Console.Clear();
                 Console.WriteLine("监视已连接设备中，按 Esc 键返回。");
-                Console.WriteLine(result);      // prevent flashing
+                Console.WriteLine(result);
                 Thread.Sleep(500);
             }
             Console.Clear();
