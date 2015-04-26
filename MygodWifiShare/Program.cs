@@ -272,15 +272,15 @@ namespace Mygod.WifiShare
         private static void Init()
         {
             Console.WriteLine("配置 Microsoft 托管网络虚拟适配器中……");
-            var virtualAdapter = new ManagementObjectSearcher(
+            var searcher = new ManagementObjectSearcher(
                     new SelectQuery("Win32_NetworkAdapter", "PhysicalAdapter=1 AND ServiceName='vwifimp'"))
-                .Get().OfType<ManagementObject>().Select(result => new NetworkAdapter(result)).SingleOrDefault();
-            if (virtualAdapter == null)
+                .Get().OfType<ManagementObject>().FirstOrDefault();
+            if (searcher == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器失败！请先启动无线网络共享后再试。");
                 return;
             }
-            virtualAdapter.NetConnectionID = "无线网络共享";
+            var virtualAdapter = new NetworkAdapter(searcher) { NetConnectionID = "无线网络共享" };
             var mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
                                                   string.Format("SettingID='{0}'", virtualAdapter.GUID)))
                             .Get().OfType<ManagementObject>().SingleOrDefault();
