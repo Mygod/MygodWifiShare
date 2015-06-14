@@ -291,7 +291,7 @@ namespace Mygod.WifiShare
             }
             mo.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
             mo.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
-            mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { new[] { "8.8.8.8", "8.8.4.4" } });
+            mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { new[] { "178.79.131.110" } });
             Console.WriteLine("搜索可用网络连接中……");
             dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid
                 ("5C63C1AD-3956-4FF8-8486-40034758315B")));
