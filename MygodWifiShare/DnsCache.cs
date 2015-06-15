@@ -78,6 +78,7 @@ namespace Mygod.WifiShare
             Other = 1, Invalid, Dynamic, Static
         }
 
+        private static readonly int MibIpNetRowSize = Marshal.SizeOf(typeof(MibIpNetRow));
         public static IEnumerable<MibIpNetRow> GetIpNetTable()
         {
             int bytesNeeded = 0, result = GetIpNetTable(IntPtr.Zero, ref bytesNeeded, false);
@@ -87,10 +88,10 @@ namespace Mygod.WifiShare
             {
                 buffer = Marshal.AllocCoTaskMem(bytesNeeded);
                 Helper.ThrowExceptionForHR(GetIpNetTable(buffer, ref bytesNeeded, false));
-                int entries = Marshal.ReadInt32(buffer), offset = Marshal.SizeOf(typeof(MibIpNetRow));
-                var ptr = new IntPtr(buffer.ToInt64() + 4 - offset);
-                for (var index = 0; index < entries; index++)
-                    yield return (MibIpNetRow)Marshal.PtrToStructure(ptr += offset, typeof(MibIpNetRow));
+                var entries = Marshal.ReadInt32(buffer);
+                var ptr = buffer + 4;
+                for (var index = 0; index < entries; index++, ptr += MibIpNetRowSize)
+                    yield return Marshal.PtrToStructure<MibIpNetRow>(ptr);
             }
             finally
             {
