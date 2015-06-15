@@ -1239,11 +1239,11 @@ namespace Microsoft.Win32.TaskScheduler
 					count = count1;
 				}
 				ret = new DateTime[count];
-				int stSize = Marshal.SizeOf(typeof(TaskScheduler.V1Interop.SystemTime));
+				int stSize = Marshal.SizeOf(typeof(V1Interop.SystemTime));
 				for (int i = 0; i < count; i++)
 				{
 					st = new IntPtr(runTimes.ToInt64() + (i * stSize));
-					ret[i] = (TaskScheduler.V1Interop.SystemTime)Marshal.PtrToStructure(st, typeof(TaskScheduler.V1Interop.SystemTime));
+                    ret[i] = Marshal.PtrToStructure<V1Interop.SystemTime>(st);
 				}
 			}
 			catch (Exception ex)

@@ -258,8 +258,9 @@ namespace Mygod.WifiShare
                     Close();
                     return;
                 }
-                WriteReason(reason = key is string ? WlanManager.SetSecondaryKey((string) key)
-                                                   : WlanManager.SetSecondaryKey((byte[]) key));
+                var keyString = key as string;
+                WriteReason(reason = keyString != null ? WlanManager.SetSecondaryKey(keyString)
+                                                       : WlanManager.SetSecondaryKey((byte[]) key));
                 if (reason != WlanHostedNetworkReason.Success)
                 {
                     Close();
@@ -459,16 +460,16 @@ namespace Mygod.WifiShare
             });
         }
 
-        private static bool requireUpdate = true;
+        private static DateTime lookupTime = DateTime.MinValue;
         private static ILookup<string, Arp.MibIpNetRow> lookup;
         public static ILookup<string, Arp.MibIpNetRow> Lookup
         {
             get
             {
-                if (requireUpdate)
+                if ((DateTime.Now - lookupTime).TotalSeconds > Ttl)
                 {
                     lookup = Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row);
-                    requireUpdate = false;
+                    lookupTime = DateTime.Now;
                 }
                 return lookup;
             }
@@ -486,7 +487,7 @@ namespace Mygod.WifiShare
                     var domains = DnsCache.GetDomains(ip.IPAddress, wait || Ttl == 0);
                     return ip.ToString() + (domains == null ? string.Empty : (" [" + domains + ']'));
                 })));
-            else requireUpdate = true;
+            else lookupTime = DateTime.MinValue;
             return result;
         }
         private static string QueryCurrentDevices(bool wait = false)
@@ -524,7 +525,7 @@ namespace Mygod.WifiShare
                 Console.Clear();
                 Console.WriteLine("监视已连接设备中，按 Esc 键返回。");
                 Console.WriteLine(result);
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
             Console.Clear();
         }
