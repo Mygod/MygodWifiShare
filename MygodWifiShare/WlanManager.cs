@@ -196,16 +196,15 @@ namespace Mygod.WifiShare
                 switch ((WlanHostedNetworkNotificationCode)notifData.notificationCode)
                 {
                     case WlanHostedNetworkNotificationCode.StateChange:
-                        var pStateChange = (WlanHostedNetworkStateChange)
-                            Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkStateChange));
+                        var pStateChange = Marshal.PtrToStructure<WlanHostedNetworkStateChange>(notifData.dataPtr);
                         Logger.Instance.Write("托管网络状态已改变：" + ToString(pStateChange.OldState));
                         if (pStateChange.OldState != pStateChange.NewState)
                             Logger.Instance.Write(" => " + ToString(pStateChange.NewState));
                         Logger.Instance.WriteLine("；原因：" + ToString(pStateChange.Reason));
                         break;
                     case WlanHostedNetworkNotificationCode.PeerStateChange:
-                        var pPeerStateChange = (WlanHostedNetworkDataPeerStateChange)
-                            Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkDataPeerStateChange));
+                        var pPeerStateChange = Marshal.PtrToStructure
+                            <WlanHostedNetworkDataPeerStateChange>(notifData.dataPtr);
                         var lookup = Program.Lookup;
                         Logger.Instance.WriteLine("客户端已改变。原因：{0}{3}{1}=>{3}{2}",
                                               ToString(pPeerStateChange.Reason),
@@ -214,8 +213,7 @@ namespace Mygod.WifiShare
                                               Environment.NewLine);
                         break;
                     case WlanHostedNetworkNotificationCode.RadioStateChange:
-                        var pRadioState = (WlanHostedNetworkRadioState)
-                            Marshal.PtrToStructure(notifData.dataPtr, typeof(WlanHostedNetworkRadioState));
+                        var pRadioState = Marshal.PtrToStructure<WlanHostedNetworkRadioState>(notifData.dataPtr);
                         Logger.Instance.WriteLine("无线状态已改变。软件开关：{0}；硬件开关：{1}。",
                                               ToString(pRadioState.dot11SoftwareRadioState),
                                               ToString(pRadioState.dot11HardwareRadioState));
@@ -284,8 +282,7 @@ namespace Mygod.WifiShare
             IntPtr ptr;
             Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryStatus
                                             (wlanHandle, out ptr, IntPtr.Zero));
-            var netStat = (WlanHostedNetworkStatusTemp)
-                Marshal.PtrToStructure(ptr, typeof(WlanHostedNetworkStatusTemp));
+            var netStat = Marshal.PtrToStructure<WlanHostedNetworkStatusTemp>(ptr);
             var stat = new WlanHostedNetworkStatus();
             if ((stat.HostedNetworkState = netStat.HostedNetworkState) != WlanHostedNetworkState.Unavailable)
             {
@@ -298,9 +295,8 @@ namespace Mygod.WifiShare
                     stat.dwNumberOfPeers = netStat.NumberOfPeers;
                     stat.PeerList = new WlanHostedNetworkPeerState[stat.dwNumberOfPeers];
                     var offset = Marshal.SizeOf(typeof(WlanHostedNetworkStatusTemp));
-                    for (var i = 0; i < netStat.NumberOfPeers; i++) offset += Marshal.SizeOf(stat.PeerList[i]
-                        = (WlanHostedNetworkPeerState)Marshal.PtrToStructure(new IntPtr(ptr.ToInt64() + offset),
-                                                                             typeof(WlanHostedNetworkPeerState)));
+                    for (var i = 0; i < netStat.NumberOfPeers; i++) offset += Marshal.SizeOf(stat.PeerList[i] =
+                        Marshal.PtrToStructure<WlanHostedNetworkPeerState>(new IntPtr(ptr.ToInt64() + offset)));
                 }
             }
             return stat;
@@ -348,8 +344,7 @@ namespace Mygod.WifiShare
                 out dataSize, out dataPtr, out opcode, IntPtr.Zero);
             if (hr == 1610) throw new BadConfigurationException();
             Helper.ThrowExceptionForHR(hr);
-            settings = (WlanHostedNetworkConnectionSettings)
-                Marshal.PtrToStructure(dataPtr, typeof(WlanHostedNetworkConnectionSettings));
+            settings = Marshal.PtrToStructure<WlanHostedNetworkConnectionSettings>(dataPtr);
             return opcode;
         }
 
@@ -361,8 +356,7 @@ namespace Mygod.WifiShare
             Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(wlanHandle,
                                         WlanHostedNetworkOpcode.SecuritySettings,
                                         out dataSize, out dataPtr, out opcode, IntPtr.Zero));
-            settings = (WlanHostedNetworkSecuritySettings)
-                Marshal.PtrToStructure(dataPtr, typeof(WlanHostedNetworkSecuritySettings));
+            settings = Marshal.PtrToStructure<WlanHostedNetworkSecuritySettings>(dataPtr);
             return opcode;
         }
 
@@ -388,7 +382,7 @@ namespace Mygod.WifiShare
             Helper.ThrowExceptionForHR(WlanNativeMethods.WlanHostedNetworkQueryProperty(wlanHandle,
                                         WlanHostedNetworkOpcode.Enable,
                                         out dataSize, out dataPtr, out opcode, IntPtr.Zero));
-            enabled = (bool)Marshal.PtrToStructure(dataPtr, typeof(bool));
+            enabled = Marshal.PtrToStructure<bool>(dataPtr);
             return opcode;
         }
     }
