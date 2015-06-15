@@ -458,8 +458,21 @@ namespace Mygod.WifiShare
                                       status.dwNumberOfPeers);
             });
         }
+
+        private static bool requireUpdate = true;
+        private static ILookup<string, Arp.MibIpNetRow> lookup;
         public static ILookup<string, Arp.MibIpNetRow> Lookup
-            { get { return Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row); }}
+        {
+            get
+            {
+                if (requireUpdate)
+                {
+                    lookup = Arp.GetIpNetTable().ToLookup(row => row.MacAddress, row => row);
+                    requireUpdate = false;
+                }
+                return lookup;
+            }
+        }
 
         public static string GetDeviceDetails(WlanHostedNetworkPeerState peer, bool wait = false,
                                               ILookup<string, Arp.MibIpNetRow> lookup = null, string padding = "")
@@ -473,6 +486,7 @@ namespace Mygod.WifiShare
                     var domains = DnsCache.GetDomains(ip.IPAddress, wait || Ttl == 0);
                     return ip.ToString() + (domains == null ? string.Empty : (" [" + domains + ']'));
                 })));
+            else requireUpdate = true;
             return result;
         }
         private static string QueryCurrentDevices(bool wait = false)
