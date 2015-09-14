@@ -41,14 +41,8 @@ namespace Mygod.WifiShare
             /// </summary>
             public readonly IPNetRowType Type;
 
-            public string MacAddress
-            {
-                get { return string.Join(":", PhysAddr.Take(PhysAddrLen).Select(b => b.ToString("X2"))); }
-            }
-            public IPAddress IPAddress
-            {
-                get { return new IPAddress(Addr); }
-            }
+            public string MacAddress => string.Join(":", PhysAddr.Take(PhysAddrLen).Select(b => b.ToString("X2")));
+            public IPAddress IPAddress => new IPAddress(Addr);
 
             public override string ToString()
             {
@@ -68,8 +62,7 @@ namespace Mygod.WifiShare
                         type = "静态";
                         break;
                 }
-                return string.IsNullOrWhiteSpace(type) ? IPAddress.ToString()
-                                                       : string.Format("{0} ({1})", IPAddress, type);
+                return string.IsNullOrWhiteSpace(type) ? IPAddress.ToString() : $"{IPAddress} ({type})";
             }
         }
 
@@ -147,7 +140,7 @@ namespace Mygod.WifiShare
         private DateTime cacheTime = DateTime.MinValue;
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-        public bool Decayed { get { return (DateTime.Now - cacheTime).TotalSeconds >= Program.Ttl; } }
+        public bool Decayed => (DateTime.Now - cacheTime).TotalSeconds >= Program.Ttl;
     }
     sealed class DnsCache : KeyedCollection<IPAddress, DnsCacheEntry>
     {

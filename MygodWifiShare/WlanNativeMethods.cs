@@ -125,7 +125,7 @@ namespace Mygod.WifiShare
 
         public override string ToString()
         {
-            return string.Format("{0:X2}:{1:X2}:{2:X2}:{3:X2}:{4:X2}:{5:X2}", one, two, three, four, five, six);
+            return $"{one:X2}:{two:X2}:{three:X2}:{four:X2}:{five:X2}:{six:X2}";
         }
     }
 

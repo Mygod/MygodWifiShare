@@ -8,7 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Mygod.WifiShare._References_._TaskScheduler_.Properties {
+namespace Microsoft.Win32.TaskScheduler.Properties
+{
     using System;
     
     

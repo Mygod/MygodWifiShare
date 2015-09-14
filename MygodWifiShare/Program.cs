@@ -19,9 +19,9 @@ namespace Mygod.Windows
 {
     static class CurrentApp
     {
-        private static AssemblyName NowAssemblyName { get { return Assembly.GetCallingAssembly().GetName(); } }
-        public static Version Version { get { return NowAssemblyName.Version; } }
-        public static string ProgramTitle { get { return NowAssemblyName.Name + @" V" + Version; } }
+        private static AssemblyName NowAssemblyName => Assembly.GetCallingAssembly().GetName();
+        public static Version Version => NowAssemblyName.Version;
+        public static string ProgramTitle => NowAssemblyName.Name + @" V" + Version;
     }
 }
 
@@ -161,12 +161,12 @@ namespace Mygod.WifiShare
         {
             try
             {
-                if (tryAction != null) tryAction();
+                tryAction?.Invoke();
             }
             catch (Exception exc)
             {
                 Console.WriteLine(prefix + '：' + exc.GetMessage());
-                if (failAction != null) failAction();
+                failAction?.Invoke();
             }
         }
         private static void WriteReason(WlanHostedNetworkReason reason)
@@ -283,8 +283,7 @@ namespace Mygod.WifiShare
             }
             var virtualAdapter = new NetworkAdapter(searcher) { NetConnectionID = "无线网络共享" };
             var mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
-                                                  string.Format("SettingID='{0}'", virtualAdapter.GUID)))
-                            .Get().OfType<ManagementObject>().SingleOrDefault();
+                $"SettingID='{virtualAdapter.GUID}'")).Get().OfType<ManagementObject>().SingleOrDefault();
             if (mo == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。");
@@ -478,15 +477,14 @@ namespace Mygod.WifiShare
         public static string GetDeviceDetails(WlanHostedNetworkPeerState peer, bool wait = false,
                                               ILookup<string, Arp.MibIpNetRow> lookup = null, string padding = "")
         {
-            var result = string.Format("物理地址：{0} ({1})\n", peer.PeerMacAddress,
-                                       WlanManager.ToString(peer.PeerAuthState));
+            var result = $"物理地址：{peer.PeerMacAddress} ({WlanManager.ToString(peer.PeerAuthState)})\n";
             var ips = (lookup ?? Lookup)[peer.PeerMacAddress.ToString()].ToArray();
-            if (ips.Length > 0) result += string.Format("{0}IP  地址：{1}\n", padding,
-                string.Join("\n          " + padding, ips.Select(ip =>
+            if (ips.Length > 0) result += padding + "IP  地址：" + string.Join("\n          " + padding,
+                ips.Select(ip =>
                 {
                     var domains = DnsCache.GetDomains(ip.IPAddress, wait || Ttl == 0);
                     return ip.ToString() + (domains == null ? string.Empty : (" [" + domains + ']'));
-                })));
+                })) + '\n';
             else lookupTime = DateTime.MinValue;
             return result;
         }
