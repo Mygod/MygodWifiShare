@@ -31,7 +31,7 @@ namespace Mygod.WifiShare
     {
         public static readonly string
             Requirement = @"{0} 需求配置：
- ※ 安装 .NET Framework 4.5.1 或更高（Windows 8.1 自带）
+ ※ 安装 .NET Framework 4.6 或更高（Windows 10 自带）
  ※ Windows 7 或更高版本的 Windows
  ※ 有支持无线网络共享（按 A 查看，状态是“不可用”表示不支持）的 Wi-Fi 无线网络适配器",
             WelcomeToUse = @"欢迎使用 {0}！
