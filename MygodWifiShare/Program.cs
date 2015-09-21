@@ -282,16 +282,16 @@ namespace Mygod.WifiShare
                 return;
             }
             var virtualAdapter = new NetworkAdapter(searcher) { NetConnectionID = "无线网络共享" };
-            var mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
+            var nac = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
                 $"SettingID='{virtualAdapter.GUID}'")).Get().OfType<ManagementObject>().SingleOrDefault();
-            if (mo == null)
+            if (nac == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。");
                 return;
             }
-            mo.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
-            mo.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
-            mo.InvokeMethod("SetDNSServerSearchOrder", new object[] { });
+            nac.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
+            nac.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
+            nac.InvokeMethod("SetDNSServerSearchOrder", new object[] { });
             Console.WriteLine("搜索可用网络连接中……");
             dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid
                 ("5C63C1AD-3956-4FF8-8486-40034758315B")));
@@ -318,6 +318,23 @@ namespace Mygod.WifiShare
                     if (!int.TryParse(Console.ReadLine(), out picked) || picked < 0 || picked >= query.Count) return;
                 }
                 else Console.WriteLine("共享唯一可用的网络连接中……");
+                foreach (var cp in new ManagementObjectSearcher(new ManagementScope(@"\\.\ROOT\Microsoft\HomeNet"),
+                    new ObjectQuery("SELECT * FROM HNet_ConnectionProperties")).Get().OfType<ManagementObject>())
+                {
+                    try
+                    {
+                        foreach (var prop in cp.Properties.Cast<PropertyData>()
+                            .Where(prop => prop.Name == "IsIcsPrivate" && (bool)prop.Value))
+                        {
+                            prop.Value = false;
+                            cp.Put();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("删除旧共享失败：" + e.Message);
+                    }
+                }
                 foreach (var connection in manager.EnumEveryConnection)
                 {
                     var conf = manager.INetSharingConfigurationForINetConnection[connection];
