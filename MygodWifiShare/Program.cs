@@ -273,25 +273,25 @@ namespace Mygod.WifiShare
         private static void Init()
         {
             Console.WriteLine("配置 Microsoft 托管网络虚拟适配器中……");
-            var searcher = new ManagementObjectSearcher(
+            var mo = new ManagementObjectSearcher(
                     new SelectQuery("Win32_NetworkAdapter", "PhysicalAdapter=1 AND ServiceName='vwifimp'"))
                 .Get().OfType<ManagementObject>().FirstOrDefault();
-            if (searcher == null)
+            if (mo == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器失败！请先启动无线网络共享后再试。");
                 return;
             }
-            var virtualAdapter = new NetworkAdapter(searcher) { NetConnectionID = "无线网络共享" };
-            var nac = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
-                $"SettingID='{virtualAdapter.GUID}'")).Get().OfType<ManagementObject>().SingleOrDefault();
-            if (nac == null)
+            var virtualAdapter = new NetworkAdapter(mo) { NetConnectionID = "无线网络共享" };
+            if ((mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
+                $"SettingID='{virtualAdapter.GUID}'")).Get().OfType<ManagementObject>().SingleOrDefault()) == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。");
                 return;
             }
-            nac.InvokeMethod("EnableStatic", new object[] { new[] { "192.168.137.1" }, new[] { "255.255.255.0" } });
-            nac.InvokeMethod("SetGateways", new object[] { new string[0], new ushort[0] });
-            nac.InvokeMethod("SetDNSServerSearchOrder", new object[] { });
+            var configuration = new NetworkAdapterConfiguration(mo);
+            configuration.EnableStatic(new[] {"192.168.137.1"}, new[] {"255.255.255.0"});
+            configuration.SetGateways(new string[0], new ushort[0]);
+            configuration.SetDNSServerSearchOrder(null);
             Console.WriteLine("搜索可用网络连接中……");
             dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid
                 ("5C63C1AD-3956-4FF8-8486-40034758315B")));
@@ -320,21 +320,14 @@ namespace Mygod.WifiShare
                 else Console.WriteLine("共享唯一可用的网络连接中……");
                 foreach (var cp in new ManagementObjectSearcher(new ManagementScope(@"\\.\ROOT\Microsoft\HomeNet"),
                     new ObjectQuery("SELECT * FROM HNet_ConnectionProperties")).Get().OfType<ManagementObject>())
-                {
                     try
                     {
-                        foreach (var prop in cp.Properties.Cast<PropertyData>()
-                            .Where(prop => prop.Name == "IsIcsPrivate" && (bool)prop.Value))
-                        {
-                            prop.Value = false;
-                            cp.Put();
-                        }
+                        if ((bool) cp.GetPropertyValue("IsIcsPrivate")) cp.SetPropertyValue("IsIcsPrivate", false);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine("删除旧共享失败：" + e.Message);
                     }
-                }
                 foreach (var connection in manager.EnumEveryConnection)
                 {
                     var conf = manager.INetSharingConfigurationForINetConnection[connection];

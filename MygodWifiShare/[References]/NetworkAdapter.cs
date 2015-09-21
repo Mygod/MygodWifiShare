@@ -6,41 +6,41 @@
     using System.Globalization;
     
     
-    // ShouldSerialize<PropertyName> 函数是 VS 属性浏览器用来检查某个特定属性是否必须序列化的函数。为所有 ValueType 属性(类型为 Int32、BOOL 等的属性，不能设置为空)添加这些函数。这些函数使用 Is<PropertyName>Null 函数。在属性的 TypeConverter 实现中也使用这些函数来检查属性的 NULL 值，以便在 Visual Studio 中进行拖放操作时可以在属性浏览器中显示空值。
-    // 函数 Is<PropertyName>Null() 用于检查属性是否为 NULL。
-    // 为可为空值的读/写属性添加 Reset<PropertyName> 函数。VS 设计器在属性浏览器中使用这些函数将属性设置为 NULL。
-    // 添加到 WMI 属性的类的每个属性都具有特性集，用于定义它在 Visual Studio 设计器中的行为，并定义要使用的 TypeConverter。
-    // 日期时间转换函数 ToDateTime 和 ToDmtfDateTime 添加到类，以便将 DMTF 日期时间转换为 System.DateTime (或相反)。
-    // 为 WMI 类生成的早期绑定类。Win32_NetworkAdapter
+    // Functions ShouldSerialize<PropertyName> are functions used by VS property browser to check if a particular property has to be serialized. These functions are added for all ValueType properties ( properties of type Int32, BOOL etc.. which cannot be set to null). These functions use Is<PropertyName>Null function. These functions are also used in the TypeConverter implementation for the properties to check for NULL value of property so that an empty value can be shown in Property browser in case of Drag and Drop in Visual studio.
+    // Functions Is<PropertyName>Null() are used to check if a property is NULL.
+    // Functions Reset<PropertyName> are added for Nullable Read/Write properties. These functions are used by VS designer in property browser to set a property to NULL.
+    // Every property added to the class for WMI property has attributes set to define its behavior in Visual Studio designer and also to define a TypeConverter to be used.
+    // Datetime conversion functions ToDateTime and ToDmtfDateTime are added to the class to convert DMTF datetime to System.DateTime and vice-versa.
+    // An Early Bound class generated for the WMI class.Win32_NetworkAdapter
     public class NetworkAdapter : System.ComponentModel.Component {
         
-        // 用于保存驻留该类的 WMI 命名空间的私有属性。
+        // Private property to hold the WMI namespace in which the class resides.
         private static string CreatedWmiNamespace = "root\\CimV2";
         
-        // 用于保存创建此类的 WMI 类名称的私有属性。
+        // Private property to hold the name of WMI class which created this class.
         private static string CreatedClassName = "Win32_NetworkAdapter";
         
-        // 用于保存由各种方法使用的 ManagementScope 的私有成员变量。
+        // Private member variable to hold the ManagementScope which is used by the various methods.
         private static System.Management.ManagementScope statMgmtScope = null;
         
         private ManagementSystemProperties PrivateSystemProperties;
         
-        // 基础 lateBound WMI 对象。
+        // Underlying lateBound WMI object.
         private System.Management.ManagementObject PrivateLateBoundObject;
         
-        // 存储类的“自动提交”行为的成员变量。
+        // Member variable to store the 'automatic commit' behavior for the class.
         private bool AutoCommitProp;
         
-        // 用于保存表示实例的嵌入属性的私有变量。
+        // Private variable to hold the embedded property representing the instance.
         private System.Management.ManagementBaseObject embeddedObj;
         
-        // 所使用的当前 WMI 对象
+        // The current WMI object used
         private System.Management.ManagementBaseObject curObj;
         
-        // 用于指示实例是否为嵌入对象的标志。
+        // Flag to indicate if the instance is an embedded object.
         private bool isEmbedded;
         
-        // 以下是用 WMI 对象初始化类实例的构造函数的不同重载。
+        // Below are different overloads of constructors to initialize an instance of the class with a WMI object.
         public NetworkAdapter() {
             this.InitializeObject(null, null, null);
         }
@@ -77,7 +77,7 @@
                 curObj = PrivateLateBoundObject;
             }
             else {
-                throw new System.ArgumentException("类名不匹配。");
+                throw new System.ArgumentException("Class name does not match.");
             }
         }
         
@@ -90,11 +90,11 @@
                 isEmbedded = true;
             }
             else {
-                throw new System.ArgumentException("类名不匹配。");
+                throw new System.ArgumentException("Class name does not match.");
             }
         }
         
-        // 属性返回 WMI 类的命名空间。
+        // Property returns the namespace of the WMI class.
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string OriginatingNamespace {
@@ -121,7 +121,7 @@
             }
         }
         
-        // 指向嵌入对象以获取 WMI 对象的 System 属性的属性。
+        // Property pointing to an embedded object to get System properties of the WMI object.
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ManagementSystemProperties SystemProperties {
@@ -130,7 +130,7 @@
             }
         }
         
-        // 返回基础 lateBound 对象的属性。
+        // Property returning the underlying lateBound object.
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public System.Management.ManagementBaseObject LateBoundObject {
@@ -139,7 +139,7 @@
             }
         }
         
-        // 对象的 ManagementScope。
+        // ManagementScope of the object.
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public System.Management.ManagementScope Scope {
@@ -158,7 +158,7 @@
             }
         }
         
-        // 显示 WMI 对象的提交行为的属性。如果为 true，则每次属性被修改后都会自动保存 WMI 对象(即在修改属性后调用 Put())。
+        // Property to show the commit behavior for the WMI object. If true, WMI object will be automatically saved after each property modification.(ie. Put() is called after modification of a property).
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool AutoCommit {
@@ -170,7 +170,7 @@
             }
         }
         
-        // 基础 WMI 对象的 ManagementPath。
+        // The ManagementPath of the underlying WMI object.
         [Browsable(true)]
         public System.Management.ManagementPath Path {
             get {
@@ -184,14 +184,14 @@
             set {
                 if ((isEmbedded == false)) {
                     if ((CheckIfProperClass(null, value, null) != true)) {
-                        throw new System.ArgumentException("类名不匹配。");
+                        throw new System.ArgumentException("Class name does not match.");
                     }
                     PrivateLateBoundObject.Path = value;
                 }
             }
         }
         
-        // 由各种方法使用的公共静态范围属性。
+        // Public static scope property which is used by the various methods.
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public static System.Management.ManagementScope StaticScope {
@@ -205,7 +205,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("AdapterType 属性反映正在使用的网络媒体。此属性可能不适用于该类中列出的所有网络适配器类型。仅适用于 Windows NT。")]
+        [Description("The AdapterType property reflects the network medium in use. This property may no" +
+            "t be applicable to all types of network adapters listed within this class. Windo" +
+            "ws NT only.")]
         public string AdapterType {
             get {
                 return ((string)(curObj["AdapterType"]));
@@ -227,22 +229,22 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description(@"AdapterTypeId 属性反映正在使用的网络媒体。该属性与 AdapterType 属性提供的信息相同，但对应以下几项并且以整数值形式返回的信息除外: 
-0 - 以太网 802.3
-1 - 令牌环网 802.5
-2 - 分布式光纤数据接口(FDDI)
-3 - 广域网(WAN)
+        [Description(@"The AdapterTypeId property reflects the network medium in use. This property gives the same information as the AdapterType property, except that the the information is returned in the form of an integer value that corresponds to the following: 
+0 - Ethernet 802.3
+1 - Token Ring 802.5
+2 - Fiber Distributed Data Interface (FDDI)
+3 - Wide Area Network (WAN)
 4 - LocalTalk
-5 - 使用 DIX 标头格式的以太网
+5 - Ethernet using DIX header format
 6 - ARCNET
 7 - ARCNET (878.2)
 8 - ATM
-9 - 无线
-10 - 红外无线
+9 - Wireless
+10 - Infrared Wireless
 11 - Bpc
 12 - CoWan
 13 - 1394
-此属性可能并不适用于该类中列出的所有网络适配器类型。仅适用于 Windows NT。")]
+This property may not be applicable to all types of network adapters listed within this class. Windows NT only.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public AdapterTypeIdValues AdapterTypeId {
             get {
@@ -268,7 +270,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("布尔值，用于指明 NetworkAdapter 能否自动确定连接网络媒体的速度或其他通信特征。")]
+        [Description("A boolean indicating whether the NetworkAdapter is capable of automatically deter" +
+            "mining the speed or other communications characteristics of the attached network" +
+            " media.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool AutoSense {
             get {
@@ -294,7 +298,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description(@"设备的可用性和状态。例如: Availability 属性可以指明设备正在运行并且为全功率(值=3)、或者处于警告(4)、测试(5)、降级(10)或节能状态(值为 13-15 和 17)。有关节能状态，其定义如下所示: 值 13 (“节能 - 未知”)表示设备处于节能模式，但是它在该模式中的准确状态未知；14 (“节能 - 低功耗模式”)表示设备处于节能状态，但仍然正常运转，可能会出现性能下降；15 (“节能 - 待机”)表示设备没有正常运转，但是可以“快速”转入全功率工作状态；值为 17 (“节能 - 警告”)时表示设备虽然处于节能模式，但它的状态是警告状态。")]
+        [Description(@"The availability and status of the device.  For example, the Availability property indicates that the device is running and has full power (value=3), or is in a warning (4), test (5), degraded (10) or power save state (values 13-15 and 17). Regarding the power saving states, these are defined as follows: Value 13 (""Power Save - Unknown"") indicates that the device is known to be in a power save mode, but its exact status in this mode is unknown; 14 (""Power Save - Low Power Mode"") indicates that the device is in a power save state but still functioning, and may exhibit degraded performance; 15 (""Power Save - Standby"") describes that the device is not functioning but could be brought to full power 'quickly'; and value 17 (""Power Save - Warning"") indicates that the device is in a warning state, though also in a power save mode.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public AvailabilityValues Availability {
             get {
@@ -307,7 +311,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Caption 属性是关于对象的简短文字描述(只有一行的字符串)。")]
+        [Description("The Caption property is a short textual description (one-line string) of the obje" +
+            "ct.")]
         public string Caption {
             get {
                 return ((string)(curObj["Caption"]));
@@ -329,39 +334,36 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description(@"指明 Win32 配置管理器错误代码。可能返回下列值: 
-0     此设备运行正常。
-1     此设备的配置不正确。
-2     Windows 无法为此设备加载驱动程序。
-3     此设备的驱动程序可能已损坏，或者系统内存或其他资源不足。
-4     此设备不能正常运行。某个驱动程序或注册表可能已损坏。
-5     此设备的驱动程序需要一个 Windows 无法管理的资源。
-6     此设备的引导配置与其他设备冲突。
-7     无法筛选。
-8     找不到此设备的驱动程序加载器。
-9     由于控制固件没有正确报告此设备的资源，所以该设备无法正常运行。
-10     此设备无法启动。
-11     此设备失败。
-12     此设备无法找到足够的可用空闲资源。
-13     Windows 无法识别此设备的资源。
-14     重新启动计算机之前，此设备无法正常运行。
-15     由于可能存在重新枚举的问题，所以此设备无法正常运行。
-16     Windows 无法识别此设备使用的所有资源。
-17     此设备正在请求未知的资源类型。
-18     为此设备重新安装驱动程序。
-19     你的注册表可能已损坏。
-20     使用 VxD 加载器失败。
-21     系统失败: 请尝试更改此设备的驱动程序。如果仍然无效，请参阅你的硬件文档。Windows 正在删除此设备。
-22     此设备已被禁用。
-23     系统失败: 请尝试更改此设备的驱动程序。如果仍然无效，请参阅你的硬件文档。
-24     此设备不存在、无法正常运行或者没有安装所有的驱动程序。
-25     Windows 仍在安装此设备。
-26     Windows 仍在安装此设备。
-27     此设备的日志配置无效。
-28     没有安装此设备的驱动程序。
-29     由于此设备的固件没有提供所需资源，所以此设备已被禁用。
-30     此设备正在使用另一台设备使用的中断请求(IRQ)资源。
-31     由于 Windows 无法加载此设备所需的驱动程序，所以此设备无法正常运行。")]
+        [Description("Indicates the Win32 Configuration Manager error code.  The following values may b" +
+            "e returned: \n0      This device is working properly. \n1      This device is not " +
+            "configured correctly. \n2      Windows cannot load the driver for this device. \n3" +
+            "      The driver for this device might be corrupted, or your system may be runni" +
+            "ng low on memory or other resources. \n4      This device is not working properly" +
+            ". One of its drivers or your registry might be corrupted. \n5      The driver for" +
+            " this device needs a resource that Windows cannot manage. \n6      The boot confi" +
+            "guration for this device conflicts with other devices. \n7      Cannot filter. \n8" +
+            "      The driver loader for the device is missing. \n9      This device is not wo" +
+            "rking properly because the controlling firmware is reporting the resources for t" +
+            "he device incorrectly. \n10     This device cannot start. \n11     This device fai" +
+            "led. \n12     This device cannot find enough free resources that it can use. \n13 " +
+            "    Windows cannot verify this device\'s resources. \n14     This device cannot wo" +
+            "rk properly until you restart your computer. \n15     This device is not working " +
+            "properly because there is probably a re-enumeration problem. \n16     Windows can" +
+            "not identify all the resources this device uses. \n17     This device is asking f" +
+            "or an unknown resource type. \n18     Reinstall the drivers for this device. \n19 " +
+            "    Your registry might be corrupted. \n20     Failure using the VxD loader. \n21 " +
+            "    System failure: Try changing the driver for this device. If that does not wo" +
+            "rk, see your hardware documentation. Windows is removing this device. \n22     Th" +
+            "is device is disabled. \n23     System failure: Try changing the driver for this " +
+            "device. If that doesn\'t work, see your hardware documentation. \n24     This devi" +
+            "ce is not present, is not working properly, or does not have all its drivers ins" +
+            "talled. \n25     Windows is still setting up this device. \n26     Windows is stil" +
+            "l setting up this device. \n27     This device does not have valid log configurat" +
+            "ion. \n28     The drivers for this device are not installed. \n29     This device " +
+            "is disabled because the firmware of the device did not give it the required reso" +
+            "urces. \n30     This device is using an Interrupt Request (IRQ) resource that ano" +
+            "ther device is using. \n31     This device is not working properly because Window" +
+            "s cannot load the drivers required for this device.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public ConfigManagerErrorCodeValues ConfigManagerErrorCode {
             get {
@@ -387,7 +389,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("指明设备是否使用用户定义的配置。")]
+        [Description("Indicates whether the device is using a user-defined configuration.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool ConfigManagerUserConfig {
             get {
@@ -400,7 +402,10 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("CreationClassName 指明创建实例时使用的类或子类的名称。与此类的其他键属性一起使用时，此属性可唯一标识此类及其子类的所有实例。")]
+        [Description("CreationClassName indicates the name of the class or the subclass used in the cre" +
+            "ation of an instance. When used with the other key properties of this class, thi" +
+            "s property allows all instances of this class and its subclasses to be uniquely " +
+            "identified.")]
         public string CreationClassName {
             get {
                 return ((string)(curObj["CreationClassName"]));
@@ -409,7 +414,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Description 属性提供关于对象的文字描述。")]
+        [Description("The Description property provides a textual description of the object. ")]
         public string Description {
             get {
                 return ((string)(curObj["Description"]));
@@ -418,7 +423,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("DeviceID 属性包含可唯一标识网络适配器的一个字符串，此字符串将网络适配器与系统上的其他设备区分开。")]
+        [Description("The DeviceID property contains a string uniquely identifying the network adapter " +
+            "from other devices on the system.")]
         public string DeviceID {
             get {
                 return ((string)(curObj["DeviceID"]));
@@ -440,7 +446,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("ErrorCleared 是一个布尔值属性，指明 LastErrorCode 属性中报告的错误现已清除。")]
+        [Description("ErrorCleared is a boolean property indicating that the error reported in LastErro" +
+            "rCode property is now cleared.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool ErrorCleared {
             get {
@@ -453,7 +460,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("ErrorDescription 是一个自由格式字符串，提供有关 LastErrorCode 属性中记录的错误的详细信息，以及有关可以采取的纠正措施的信息。")]
+        [Description("ErrorDescription is a free-form string supplying more information about the error" +
+            " recorded in LastErrorCode property, and information on any corrective actions t" +
+            "hat may be taken.")]
         public string ErrorDescription {
             get {
                 return ((string)(curObj["ErrorDescription"]));
@@ -462,7 +471,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("GUID 属性指定该连接的全局唯一标识符。")]
+        [Description("The GUID property specifies the Globally-unique identifier for the connection.")]
         public string GUID {
             get {
                 return ((string)(curObj["GUID"]));
@@ -484,7 +493,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Index 属性指明网络适配器的索引号，该索引号通常存储在系统注册表中。\n例如: 0")]
+        [Description("The Index property indicates the network adapter\'s  index number, which is stored" +
+            " in the system registry. \nExample: 0.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public uint Index {
             get {
@@ -510,7 +520,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("InstallDate 属性是一个日期/时间值，指明对象的安装时间。缺少该值并不表示没有安装此对象。")]
+        [Description("The InstallDate property is datetime value indicating when the object was install" +
+            "ed. A lack of a value does not indicate that the object is not installed.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public System.DateTime InstallDate {
             get {
@@ -538,8 +549,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Installed 属性确定系统上是否已安装网络适配器。\n值: TRUE 或 FALSE。值 TRUE 表示已安装网络适配器。\nInstalled 属性已经被弃用" +
-            "。此属性没有替换值，并且现已被认为过时。")]
+        [Description(@"The Installed property determines whether the network adapter is installed in the system.
+Values: TRUE or FALSE. A value of TRUE indicates the network adapter is installed.  
+The Installed property has been deprecated.  There is no replacementvalue and this property is now considered obsolete.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool Installed {
             get {
@@ -565,7 +577,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("InterfaceIndex 属性包含可唯一标识本地接口的索引值。")]
+        [Description("The InterfaceIndex property contains the index value that uniquely identifies the" +
+            " local interface.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public uint InterfaceIndex {
             get {
@@ -591,7 +604,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("LastErrorCode 捕获由逻辑设备报告的最后一个错误代码。")]
+        [Description("LastErrorCode captures the last error code reported by the logical device.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public uint LastErrorCode {
             get {
@@ -604,8 +617,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("MACAddress 属性指明此网络适配器的媒体访问控制地址。MAC 地址是由制造商分配给网络适配器的一个 48 位数字，它具有唯一性。它可以唯一标识此网络适配器" +
-            "并用于映射 TCP/IP 网络通信。")]
+        [Description(@"The MACAddress property indicates the media access control address for this network adapter. A MAC address is a unique 48-bit number assigned to the network adapter by the manufacturer. It uniquely identifies this network adapter and is used for mapping TCP/IP network communications.")]
         public string MACAddress {
             get {
                 return ((string)(curObj["MACAddress"]));
@@ -614,7 +626,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Manufacturer 属性指明网络适配器的制造商名称。\n例如: 3COM")]
+        [Description("The Manufacturer property indicates the name of the network adapter\'s manufacture" +
+            "r.\nExample: 3COM.")]
         public string Manufacturer {
             get {
                 return ((string)(curObj["Manufacturer"]));
@@ -636,7 +649,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("MaxNumberControlled 属性指明此网络适配器支持的可直接寻址端口的最大数量。如果该数量未知，则值为零。")]
+        [Description("The MaxNumberControlled property indicates the maximum number of directly address" +
+            "able ports supported by this network adapter. A value of zero should be used if " +
+            "the number is unknown.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public uint MaxNumberControlled {
             get {
@@ -662,7 +677,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("网络适配器的最大速度(位/秒)。")]
+        [Description("The maximum speed, in bits per second, for the network adapter.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public ulong MaxSpeed {
             get {
@@ -675,7 +690,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Name 属性定义用于识别对象的名称标签。在派生子类时，Name 属性可以替代为 Key 属性。")]
+        [Description("The Name property defines the label by which the object is known. When subclassed" +
+            ", the Name property can be overridden to be a Key property.")]
         public string Name {
             get {
                 return ((string)(curObj["Name"]));
@@ -684,7 +700,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("NetConnectionID 属性指定“网络连接”文件夹中显示的网络连接名称。")]
+        [Description("The NetConnectionID property specifies the name of the network connection as it a" +
+            "ppears in the \'Network Connections\' folder.")]
         public string NetConnectionID {
             get {
                 return ((string)(curObj["NetConnectionID"]));
@@ -713,9 +730,21 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("NetConnectionStatus 是指明网络适配器的网络连接状态的字符串。该属性的值有如下几种:\n0 - 未连接\n1 - 正在连接\n2 - 已连接\n3 - " +
-            "正在断开连接\n4 - 硬件不存在\n5 - 硬件被禁用\n6 - 硬件无法正常工作\n7 - 媒体已断开连接\n8 - 正在进行身份验证\n9 - 身份验证成功\n10 -" +
-            " 身份验证失败\n11 - 无效的地址\n12 - 需要凭据\n.. - 其他 - 有关上列值以外的整数值，请参阅 Win32 错误代码文档。")]
+        [Description(@"NetConnectionStatus is a string indicating the state of the network adapter's connection to the network. The value of the property is to be interpreted as follows:
+0 - Disconnected
+1 - Connecting
+2 - Connected
+3 - Disconnecting
+4 - Hardware not present
+5 - Hardware disabled
+6 - Hardware malfunction
+7 - Media disconnected
+8 - Authenticating
+9 - Authentication succeeded
+10 - Authentication failed
+11 - Invalid Address
+12 - Credentials Required
+.. - Other - For integer values other than those listed above, refer to Win32 error code documentation.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public ushort NetConnectionStatus {
             get {
@@ -741,7 +770,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("NetEnabled 属性指定是否启用网络连接。")]
+        [Description("The NetEnabled property specifies whether the network connection is enabled or no" +
+            "t.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool NetEnabled {
             get {
@@ -754,7 +784,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("一个字符串数组，用于指明适配器网络地址。")]
+        [Description("An array of strings indicating the network addresses for an adapter.")]
         public string[] NetworkAddresses {
             get {
                 return ((string[])(curObj["NetworkAddresses"]));
@@ -763,8 +793,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("PermanentAddress 定义了以硬编码形式编入到适配器中的网络地址。这个“硬编码”地址可能通过固件升级或软件配置进行更改。如果是这样，该字段应该在发生更" +
-            "改时进行更新。如果网络适配器不存在“硬编码”地址，那么 PermanentAddress 应保留为空。")]
+        [Description(@"PermanentAddress defines the network address hard coded into an adapter.  This 'hard coded' address may be changed via firmware upgrade or software configuration. If so, this field should be updated when the change is made.  PermanentAddress should be left blank if no 'hard coded' address exists for the network adapter.")]
         public string PermanentAddress {
             get {
                 return ((string)(curObj["PermanentAddress"]));
@@ -786,7 +815,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("PhysicalAdapter 属性指定适配器是物理适配器还是逻辑适配器。")]
+        [Description("The PhysicalAdapter property specifies whether the adapter is physical adapter or" +
+            " logical adapter.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool PhysicalAdapter {
             get {
@@ -799,7 +829,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("指明逻辑设备的 Win32 即插即用设备 ID。例如: *PNP030b")]
+        [Description("Indicates the Win32 Plug and Play device ID of the logical device.  Example: *PNP" +
+            "030b")]
         public string PNPDeviceID {
             get {
                 return ((string)(curObj["PNPDeviceID"]));
@@ -808,11 +839,10 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description(@"指明逻辑设备中与电源有关的特定功能。数组值 0=“未知”，1=“不支持”和 2=“已禁用”代表的含义一目了然。值 3=“已启用”表示当前已启用电源管理功能，但是具体的功能集未知或者信息无效。“自动进入节能模式”(4)表示设备可根据用途或其他条件更改其电源状态。“可设置电源状态”(5)表示支持 SetPowerState 方法。“支持电源重启”(6)表示可以通过将 PowerState 输入变量设置为 5 (“电源重启”)来调用 SetPowerState 方法。“支持定时通电”(7)表示可以通过将 PowerState 输入变量设置为 5 (“电源重启”)、Time 参数设置为具体的通电日期和时间或间隔，调用 SetPowerState 方法。")]
+        [Description(@"Indicates the specific power-related capabilities of the logical device. The array values, 0=""Unknown"", 1=""Not Supported"" and 2=""Disabled"" are self-explanatory. The value, 3=""Enabled"" indicates that the power management features are currently enabled but the exact feature set is unknown or the information is unavailable. ""Power Saving Modes Entered Automatically"" (4) describes that a device can change its power state based on usage or other criteria. ""Power State Settable"" (5) indicates that the SetPowerState method is supported. ""Power Cycling Supported"" (6) indicates that the SetPowerState method can be invoked with the PowerState input variable set to 5 (""Power Cycle""). ""Timed Power On Supported"" (7) indicates that the SetPowerState method can be invoked with the PowerState input variable set to 5 (""Power Cycle"") and the Time parameter set to a specific date and time, or interval, for power-on.")]
         public PowerManagementCapabilitiesValues[] PowerManagementCapabilities {
             get {
                 System.Array arrEnumVals = ((System.Array)(curObj["PowerManagementCapabilities"]));
-                if (arrEnumVals == null) return null;
                 PowerManagementCapabilitiesValues[] enumToRet = new PowerManagementCapabilitiesValues[arrEnumVals.Length];
                 int counter = 0;
                 for (counter = 0; (counter < arrEnumVals.Length); counter = (counter + 1)) {
@@ -837,9 +867,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("布尔值，指明设备是否支持电源管理，即进入节能状态。该布尔值并不表示当前启用了电源管理功能；或者，如果已经启用了电源管理功能，该布尔值也并不表示支持具体的功能。相关" +
-            "信息，请参阅 PowerManagementCapabilities 数组。如果此布尔值为 False，那么在 PowerManagementCapabilit" +
-            "ies 数组中，整数值为 1 的字符串“不支持”应是仅有的条目。")]
+        [Description(@"Boolean indicating that the Device can be power managed - ie, put into a power save state. This boolean does not indicate that power management features are currently enabled, or if enabled, what features are supported. Refer to the PowerManagementCapabilities array for this information. If this boolean is false, the integer value 1, for the string, ""Not Supported"", should be the only entry in the PowerManagementCapabilities array.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public bool PowerManagementSupported {
             get {
@@ -852,7 +880,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("ProductName 属性指明网络适配器的产品名称。\n例如: Fast EtherLink XL")]
+        [Description("The ProductName property indicates the product name of the network adapter.\nExamp" +
+            "le: Fast EtherLink XL")]
         public string ProductName {
             get {
                 return ((string)(curObj["ProductName"]));
@@ -861,7 +890,8 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("ServiceName 属性指明网络适配器的服务名称。此名称通常短于产品的完整名称。\n例如: Elnkii")]
+        [Description("The ServiceName property indicates the service name of the network adapter. This " +
+            "name is usually shorter that the full product name. \nExample: Elnkii.")]
         public string ServiceName {
             get {
                 return ((string)(curObj["ServiceName"]));
@@ -883,7 +913,9 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("对当前带宽的估计(以“位/秒”为单位)。对于带宽会发生变化或无法进行准确估计的终结点，此属性应该包含名义带宽。")]
+        [Description("An estimate of the current bandwidth in bits per second. For endpoints which vary" +
+            " in bandwidth or for those where no accurate estimation can be made, this proper" +
+            "ty should contain the nominal bandwidth.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public ulong Speed {
             get {
@@ -896,9 +928,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("Status 属性是一个指明对象当前状态的字符串。可定义各种运行和非运行状态。运行状态包括“良好”、“已降级”和“预见故障”。其中，“预见故障”表示元素目前虽正常" +
-            "运行，但是预见不久会出现故障。示例是一个启用了 SMART 的硬盘驱动器。它还可以指定非运行状态。这些状态包括“错误”、“正在启动”、“正在停止”和“服务”。后" +
-            "者(“服务”)可以应用在磁盘镜像、重载用户权限列表或其他管理作业中。并非所有这类作业都是联机的；但是，被管理元素的状态不是“良好”也不是其他任何状态。")]
+        [Description(@"The Status property is a string indicating the current status of the object. Various operational and non-operational statuses can be defined. Operational statuses are ""OK"", ""Degraded"" and ""Pred Fail"". ""Pred Fail"" indicates that an element may be functioning properly but predicting a failure in the near future. An example is a SMART-enabled hard drive. Non-operational statuses can also be specified. These are ""Error"", ""Starting"", ""Stopping"" and ""Service"". The latter, ""Service"", could apply during mirror-resilvering of a disk, reload of a user permissions list, or other administrative work. Not all such work is on-line, yet the managed element is neither ""OK"" nor in one of the other states.")]
         public string Status {
             get {
                 return ((string)(curObj["Status"]));
@@ -920,8 +950,10 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("StatusInfo 是一个字符串，指明逻辑设备是处于启用(值 = 3)、禁用(值 = 4)、其他(1)还是未知(2)状态。如果这个属性不适用于逻辑设备，则值应该" +
-            "为 5 (“不适用”)。")]
+        [Description("StatusInfo is a string indicating whether the logical device is in an enabled (va" +
+            "lue = 3), disabled (value = 4) or some other (1) or unknown (2) state. If this p" +
+            "roperty does not apply to the logical device, the value, 5 (\"Not Applicable\"), s" +
+            "hould be used.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public StatusInfoValues StatusInfo {
             get {
@@ -934,7 +966,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("作用域系统的 CreationClassName。")]
+        [Description("The scoping System\'s CreationClassName.")]
         public string SystemCreationClassName {
             get {
                 return ((string)(curObj["SystemCreationClassName"]));
@@ -943,7 +975,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("作用域系统的名称。")]
+        [Description("The scoping System\'s Name.")]
         public string SystemName {
             get {
                 return ((string)(curObj["SystemName"]));
@@ -965,7 +997,7 @@
         
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Description("TimeOfLastReset 属性指明上次重置网络适配器的时间。")]
+        [Description("The TimeOfLastReset property indicates when the network adapter was last reset.")]
         [TypeConverter(typeof(WMIValueTypeConverter))]
         public System.DateTime TimeOfLastReset {
             get {
@@ -1056,7 +1088,7 @@
             return false;
         }
         
-        // 将 DMTF 格式的给定日期时间转换为 System.DateTime 对象。
+        // Converts a given datetime in DMTF format to System.DateTime object.
         static System.DateTime ToDateTime(string dmtfDate) {
             System.DateTime initializer = System.DateTime.MinValue;
             int year = initializer.Year;
@@ -1142,7 +1174,7 @@
             return datetime;
         }
         
-        // 将给定的 System.DateTime 对象转换为 DMTF 日期时间格式。
+        // Converts a given System.DateTime object to DMTF datetime format.
         static string ToDmtfDateTime(System.DateTime date) {
             string utcString = string.Empty;
             System.TimeSpan tickOffset = System.TimeZone.CurrentTimeZone.GetUtcOffset(date);
@@ -1308,7 +1340,7 @@
             Initialize();
             if ((path != null)) {
                 if ((CheckIfProperClass(mgmtScope, path, getOptions) != true)) {
-                    throw new System.ArgumentException("类名不匹配。");
+                    throw new System.ArgumentException("Class name does not match.");
                 }
             }
             PrivateLateBoundObject = new System.Management.ManagementObject(mgmtScope, path, getOptions);
@@ -1316,7 +1348,7 @@
             curObj = PrivateLateBoundObject;
         }
         
-        // GetInstances() 的不同重载帮助枚举 WMI 类的实例。
+        // Different overloads of GetInstances() help in enumerating instances of the WMI class.
         public static NetworkAdapterCollection GetInstances() {
             return GetInstances(null, null, null);
         }
@@ -1448,17 +1480,17 @@
         
         public enum AdapterTypeIdValues {
             
-            以太网_802_3 = 0,
+            Ethernet_802_3 = 0,
             
-            令牌环_802_5 = 1,
+            Token_Ring_802_5 = 1,
             
-            光纤分布式数据接口_FDDI_ = 2,
+            Fiber_Distributed_Data_Interface_FDDI_ = 2,
             
-            广域网_WAN_ = 3,
+            Wide_Area_Network_WAN_ = 3,
             
             LocalTalk = 4,
             
-            使用_DIX_标头格式的以太网 = 5,
+            Ethernet_using_DIX_header_format = 5,
             
             ARCNET = 6,
             
@@ -1466,9 +1498,9 @@
             
             ATM = 8,
             
-            无线 = 9,
+            Wireless = 9,
             
-            红外无线 = 10,
+            Infrared_Wireless = 10,
             
             Bpc = 11,
             
@@ -1481,157 +1513,157 @@
         
         public enum AvailabilityValues {
             
-            其他 = 1,
+            Other0 = 1,
             
-            未知 = 2,
+            Unknown0 = 2,
             
-            正在运行_全功耗 = 3,
+            Running_Full_Power = 3,
             
-            警告 = 4,
+            Warning = 4,
             
-            正在测试 = 5,
+            In_Test = 5,
             
-            不适用 = 6,
+            Not_Applicable = 6,
             
-            关闭电源 = 7,
+            Power_Off = 7,
             
-            脱机 = 8,
+            Off_Line = 8,
             
-            休息 = 9,
+            Off_Duty = 9,
             
-            已降级 = 10,
+            Degraded = 10,
             
-            未安装 = 11,
+            Not_Installed = 11,
             
-            安装错误 = 12,
+            Install_Error = 12,
             
-            节能_未知 = 13,
+            Power_Save_Unknown = 13,
             
-            节能_低功耗模式 = 14,
+            Power_Save_Low_Power_Mode = 14,
             
-            节能_待机 = 15,
+            Power_Save_Standby = 15,
             
-            电源重启 = 16,
+            Power_Cycle = 16,
             
-            节能_警告 = 17,
+            Power_Save_Warning = 17,
             
-            已暂停 = 18,
+            Paused = 18,
             
-            未就绪 = 19,
+            Not_Ready = 19,
             
-            未配置 = 20,
+            Not_Configured = 20,
             
-            静止 = 21,
+            Quiesced = 21,
             
             NULL_ENUM_VALUE = 0,
         }
         
         public enum ConfigManagerErrorCodeValues {
             
-            该设备正常工作_ = 0,
+            This_device_is_working_properly_ = 0,
             
-            未正确配置该设备_ = 1,
+            This_device_is_not_configured_correctly_ = 1,
             
-            Windows_无法为此设备加载驱动程序_ = 2,
+            Windows_cannot_load_the_driver_for_this_device_ = 2,
             
-            该设备的驱动程序可能已损坏_或者系统的内存或其他资源不足_ = 3,
+            The_driver_for_this_device_might_be_corrupted_or_your_system_may_be_running_low_on_memory_or_other_resources_ = 3,
             
-            该设备无法正常工作_某个驱动程序或注册表可能已损坏_ = 4,
+            This_device_is_not_working_properly_One_of_its_drivers_or_your_registry_might_be_corrupted_ = 4,
             
-            Windows_无法管理该设备的驱动程序所需的资源_ = 5,
+            The_driver_for_this_device_needs_a_resource_that_Windows_cannot_manage_ = 5,
             
-            该设备的引导配置与其他设备发生冲突_ = 6,
+            The_boot_configuration_for_this_device_conflicts_with_other_devices_ = 6,
             
-            无法筛选_ = 7,
+            Cannot_filter_ = 7,
             
-            找不到设备的驱动程序加载器_ = 8,
+            The_driver_loader_for_the_device_is_missing_ = 8,
             
-            由于控制固件没有正确报告此设备的资源_所以该设备无法正常运行_ = 9,
+            This_device_is_not_working_properly_because_the_controlling_firmware_is_reporting_the_resources_for_the_device_incorrectly_ = 9,
             
-            该设备无法启动_ = 10,
+            This_device_cannot_start_ = 10,
             
-            该设备发生故障_ = 11,
+            This_device_failed_ = 11,
             
-            该设备找不到足够的可用资源_ = 12,
+            This_device_cannot_find_enough_free_resources_that_it_can_use_ = 12,
             
-            Windows_无法验证该设备的资源_ = 13,
+            Windows_cannot_verify_this_device_s_resources_ = 13,
             
-            在重新启动计算机之前_该设备无法正常工作_ = 14,
+            This_device_cannot_work_properly_until_you_restart_your_computer_ = 14,
             
-            该设备未正常工作_可能是因为出现了重新枚举问题_ = 15,
+            This_device_is_not_working_properly_because_there_is_probably_a_re_enumeration_problem_ = 15,
             
-            Windows_无法识别该设备使用的所有资源_ = 16,
+            Windows_cannot_identify_all_the_resources_this_device_uses_ = 16,
             
-            该设备正在请求未知的资源类型_ = 17,
+            This_device_is_asking_for_an_unknown_resource_type_ = 17,
             
-            重新安装该设备的驱动程序_ = 18,
+            Reinstall_the_drivers_for_this_device_ = 18,
             
-            使用_VxD_加载器失败_ = 19,
+            Failure_using_the_VxD_loader_ = 19,
             
-            注册表可能已损坏_ = 20,
+            Your_registry_might_be_corrupted_ = 20,
             
-            系统失败_请尝试更改此设备的驱动程序_如果仍然无效_请参阅你的硬件文档_Windows_正在删除此设备_ = 21,
+            System_failure_Try_changing_the_driver_for_this_device_If_that_does_not_work_see_your_hardware_documentation_Windows_is_removing_this_device_ = 21,
             
-            已禁用该设备_ = 22,
+            This_device_is_disabled_ = 22,
             
-            系统故障_尝试更改该设备的驱动程序_如果不起作用_请参阅硬件文档_ = 23,
+            System_failure_Try_changing_the_driver_for_this_device_If_that_doesn_t_work_see_your_hardware_documentation_ = 23,
             
-            该设备不存在_未正常工作或没有安装其所有驱动程序_ = 24,
+            This_device_is_not_present_is_not_working_properly_or_does_not_have_all_its_drivers_installed_ = 24,
             
-            Windows_仍在设置该设备_ = 25,
+            Windows_is_still_setting_up_this_device_ = 25,
             
-            Windows_仍在设置该设备_0 = 26,
+            Windows_is_still_setting_up_this_device_0 = 26,
             
-            该设备没有有效的日志配置_ = 27,
+            This_device_does_not_have_valid_log_configuration_ = 27,
             
-            未安装该设备的驱动程序_ = 28,
+            The_drivers_for_this_device_are_not_installed_ = 28,
             
-            已禁用该设备_因为设备固件没有提供所需的资源_ = 29,
+            This_device_is_disabled_because_the_firmware_of_the_device_did_not_give_it_the_required_resources_ = 29,
             
-            该设备使用的中断请求_IRQ_资源正在被另一个设备所使用_ = 30,
+            This_device_is_using_an_Interrupt_Request_IRQ_resource_that_another_device_is_using_ = 30,
             
-            该设备未正常工作_因为_Windows_无法加载该设备所需的驱动程序_ = 31,
+            This_device_is_not_working_properly_because_Windows_cannot_load_the_drivers_required_for_this_device_ = 31,
             
             NULL_ENUM_VALUE = 32,
         }
         
         public enum PowerManagementCapabilitiesValues {
             
-            未知 = 0,
+            Unknown0 = 0,
             
-            不支持 = 1,
+            Not_Supported = 1,
             
-            已禁用 = 2,
+            Disabled = 2,
             
-            已启用 = 3,
+            Enabled = 3,
             
-            自动进入节能模式 = 4,
+            Power_Saving_Modes_Entered_Automatically = 4,
             
-            可设置电源状态 = 5,
+            Power_State_Settable = 5,
             
-            支持电源重启 = 6,
+            Power_Cycling_Supported = 6,
             
-            支持定时通电 = 7,
+            Timed_Power_On_Supported = 7,
             
             NULL_ENUM_VALUE = 8,
         }
         
         public enum StatusInfoValues {
             
-            其他 = 1,
+            Other0 = 1,
             
-            未知 = 2,
+            Unknown0 = 2,
             
-            已启用 = 3,
+            Enabled = 3,
             
-            已禁用 = 4,
+            Disabled = 4,
             
-            不适用 = 5,
+            Not_Applicable = 5,
             
             NULL_ENUM_VALUE = 0,
         }
         
-        // 用于枚举该类的实例的枚举数实现。
+        // Enumerator implementation for enumerating instances of the class.
         public class NetworkAdapterCollection : object, ICollection {
             
             private ManagementObjectCollection privColObj;
@@ -1694,7 +1726,7 @@
             }
         }
         
-        // 处理 ValueType 属性的空值的 TypeConverter
+        // TypeConverter to handle null values for ValueType properties
         public class WMIValueTypeConverter : TypeConverter {
             
             private TypeConverter baseConverter;
@@ -1775,7 +1807,7 @@
             }
         }
         
-        // 表示 WMI 系统属性的嵌入类。
+        // Embedded class to represent WMI system Properties.
         [TypeConverter(typeof(System.ComponentModel.ExpandableObjectConverter))]
         public class ManagementSystemProperties {
             

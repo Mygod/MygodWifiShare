@@ -121,6 +121,9 @@
     <Compile Include="[References]\NetworkAdapter.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="[References]\NetworkAdapterConfiguration.CS">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="[References]\[TaskScheduler]\Action.cs" />
     <Compile Include="[References]\[TaskScheduler]\ActionCollection.cs" />
     <Compile Include="[References]\[TaskScheduler]\CultureSwitcher.cs" />
