@@ -289,7 +289,7 @@ namespace Mygod.WifiShare
                 return;
             }
             configuration.EnableStatic(new[] {"192.168.137.1"}, new[] {"255.255.255.0"});
-            configuration.SetGateways(new string[0], new ushort[0]);
+            configuration.SetGateways(null, null);
             configuration.SetDNSServerSearchOrder(null);
             Console.WriteLine("搜索可用网络连接中……");
             dynamic manager = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid
