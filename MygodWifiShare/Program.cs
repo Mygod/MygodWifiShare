@@ -10,9 +10,9 @@ using System.Text;
 using System.Threading;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
+using Mygod.Management;
 using Mygod.Net;
 using Mygod.Windows;
-using ROOT.CIMV2.Win32;
 using Action = System.Action;
 
 namespace Mygod.Windows
@@ -273,22 +273,21 @@ namespace Mygod.WifiShare
         private static void Init()
         {
             Console.WriteLine("配置 Microsoft 托管网络虚拟适配器中……");
-            var mo = new ManagementObjectSearcher(
-                    new SelectQuery("Win32_NetworkAdapter", "PhysicalAdapter=1 AND ServiceName='vwifimp'"))
-                .Get().OfType<ManagementObject>().FirstOrDefault();
-            if (mo == null)
+            dynamic virtualAdapter = WmiClass.Query(new SelectQuery("Win32_NetworkAdapter",
+                "PhysicalAdapter=1 AND ServiceName='vwifimp'")).FirstOrDefault();
+            if (virtualAdapter == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器失败！请先启动无线网络共享后再试。");
                 return;
             }
-            var virtualAdapter = new NetworkAdapter(mo) { NetConnectionID = "无线网络共享" };
-            if ((mo = new ManagementObjectSearcher(new SelectQuery("Win32_NetworkAdapterConfiguration",
-                $"SettingID='{virtualAdapter.GUID}'")).Get().OfType<ManagementObject>().SingleOrDefault()) == null)
+            virtualAdapter.NetConnectionID = "无线网络共享";
+            dynamic configuration = WmiClass.Query(new SelectQuery("Win32_NetworkAdapterConfiguration",
+                $"SettingID='{virtualAdapter.GUID}'")).SingleOrDefault();
+            if (configuration == null)
             {
                 Console.WriteLine("查询 Microsoft 托管网络虚拟适配器具体配置失败！请先启动无线网络共享后再试。");
                 return;
             }
-            var configuration = new NetworkAdapterConfiguration(mo);
             configuration.EnableStatic(new[] {"192.168.137.1"}, new[] {"255.255.255.0"});
             configuration.SetGateways(new string[0], new ushort[0]);
             configuration.SetDNSServerSearchOrder(null);
