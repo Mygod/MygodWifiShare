@@ -304,7 +304,7 @@ namespace Mygod.WifiShare
                     else return;
                 else if (props.Status == 2) // NCS_CONNECTED
                 {
-                    Console.WriteLine("{0}. {1} ({2})", query.Count, props.Name, props.DeviceName);
+                    Console.WriteLine($"{query.Count}. {props.Name} ({props.DeviceName})");
                     query.Add(new Tuple<dynamic, dynamic>(connection, props.Guid));
                 }
             }
