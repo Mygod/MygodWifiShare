@@ -317,11 +317,11 @@ namespace Mygod.WifiShare
                     if (!int.TryParse(Console.ReadLine(), out picked) || picked < 0 || picked >= query.Count) return;
                 }
                 else Console.WriteLine("共享唯一可用的网络连接中……");
-                foreach (var cp in new ManagementObjectSearcher(new ManagementScope(@"\\.\ROOT\Microsoft\HomeNet"),
-                    new ObjectQuery("SELECT * FROM HNet_ConnectionProperties")).Get().OfType<ManagementObject>())
+                foreach (dynamic cp in WmiClass.Query(new ManagementScope(@"\\.\ROOT\Microsoft\HomeNet"),
+                    new ObjectQuery("SELECT * FROM HNet_ConnectionProperties")))
                     try
                     {
-                        if ((bool) cp.GetPropertyValue("IsIcsPrivate")) cp.SetPropertyValue("IsIcsPrivate", false);
+                        if (cp.IsIcsPrivate) cp.IsIcsPrivate = false;
                     }
                     catch (Exception e)
                     {
