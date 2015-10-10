@@ -241,6 +241,7 @@ namespace Mygod.WifiShare
                 sa.Start();
                 sa.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
             }, prefix: DeepRestartPrefix);
+            Thread.Sleep(1000);
             WlanManager.Restart();
         }
         private static void Close()
