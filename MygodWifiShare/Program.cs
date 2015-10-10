@@ -198,7 +198,8 @@ namespace Mygod.WifiShare
         private static readonly string DeepRestartPrefix = "重启服务时出现错误";
         private static void DeepRestart()
         {
-            ServiceController sa = new ServiceController("SharedAccess"), w = new ServiceController("Wlansvc");
+            ServiceController sa = new ServiceController("SharedAccess"), w = new ServiceController("Wlansvc"),
+                              ra = new ServiceController("RemoteAccess");
             Try(() =>
             {
                 Console.WriteLine("正在停止服务 {0}……", sa.DisplayName);
@@ -209,6 +210,10 @@ namespace Mygod.WifiShare
                 if (w.Status != ServiceControllerStatus.StopPending && w.Status != ServiceControllerStatus.Stopped)
                     w.Stop();
                 w.WaitForStatus(ServiceControllerStatus.Stopped, new TimeSpan(0, 1, 0));
+                Console.WriteLine("正在停止服务 {0}……", ra.DisplayName);
+                if (ra.Status != ServiceControllerStatus.StopPending && w.Status != ServiceControllerStatus.Stopped)
+                    ra.Stop();
+                w.WaitForStatus(ServiceControllerStatus.Stopped, new TimeSpan(0, 1, 0));
                 Console.WriteLine("正在重置相关配置……");
                 using (var rk = Registry.LocalMachine.OpenSubKey
                     (@"SYSTEM\CurrentControlSet\services\Wlansvc\Parameters\HostedNetworkSettings", true))
@@ -217,6 +222,12 @@ namespace Mygod.WifiShare
                         rk.DeleteValue("EncryptedSettings");
                         rk.DeleteValue("HostedNetworkSettings");
                     }
+            }, prefix: DeepRestartPrefix);
+            Try(() =>
+            {
+                Console.WriteLine("正在启动服务 {0}……", ra.DisplayName);
+                ra.Start();
+                ra.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 1, 0));
             }, prefix: DeepRestartPrefix);
             Try(() =>
             {
