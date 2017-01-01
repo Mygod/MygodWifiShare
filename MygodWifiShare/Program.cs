@@ -105,6 +105,7 @@ namespace Mygod.WifiShare
 
         private static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 var exc = e.ExceptionObject as Exception;
