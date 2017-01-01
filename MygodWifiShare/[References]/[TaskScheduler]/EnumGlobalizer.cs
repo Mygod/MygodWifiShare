@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Mygod.WifiShare;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -39,7 +40,7 @@ namespace Microsoft.Win32.TaskScheduler
 		private static string GetCultureEquivalentString(DaysOfTheWeek val)
 		{
 			if (val == DaysOfTheWeek.AllDays)
-				return Properties.Resources.DOWAllDays;
+				return Resources.DOWAllDays;
 
 			List<string> s = new List<string>(7);
 			Array vals = Enum.GetValues(val.GetType());
@@ -49,13 +50,13 @@ namespace Microsoft.Win32.TaskScheduler
 					s.Add(DateTimeFormatInfo.CurrentInfo.GetDayName((DayOfWeek)i));
 			}
 
-			return string.Join(Properties.Resources.ListSeparator, s.ToArray());
+			return string.Join(Resources.ListSeparator, s.ToArray());
 		}
 
 		private static string GetCultureEquivalentString(MonthsOfTheYear val)
 		{
 			if (val == MonthsOfTheYear.AllMonths)
-				return Properties.Resources.MOYAllMonths;
+				return Resources.MOYAllMonths;
 
 			List<string> s = new List<string>(12);
 			Array vals = Enum.GetValues(val.GetType());
@@ -65,7 +66,7 @@ namespace Microsoft.Win32.TaskScheduler
 					s.Add(DateTimeFormatInfo.CurrentInfo.GetMonthName(i+1));
 			}
 
-			return string.Join(Properties.Resources.ListSeparator, s.ToArray());
+			return string.Join(Resources.ListSeparator, s.ToArray());
 		}
 
 		private static string BuildEnumString(string preface, object enumValue)
@@ -74,8 +75,8 @@ namespace Microsoft.Win32.TaskScheduler
 			if (vals.Length == 0)
 				return string.Empty;
 			for (int i = 0; i < vals.Length; i++)
-				vals[i] = Properties.Resources.ResourceManager.GetString(preface + vals[i]);
-			return string.Join(Properties.Resources.ListSeparator, vals);
+				vals[i] = Resources.ResourceManager.GetString(preface + vals[i]);
+			return string.Join(Resources.ListSeparator, vals);
 		}
 	}
 }

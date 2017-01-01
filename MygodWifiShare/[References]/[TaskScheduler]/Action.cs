@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+using Mygod.WifiShare;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -265,7 +266,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String represention this action.</returns>
 		public override string ToString()
 		{
-			return string.Format(Properties.Resources.ComHandlerAction, this.ClassId, this.Data, this.Id);
+			return string.Format(Resources.ComHandlerAction, this.ClassId, this.Data, this.Id);
 		}
 	}
 
@@ -447,7 +448,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String represention this action.</returns>
 		public override string ToString()
 		{
-			return string.Format(Properties.Resources.ExecAction, this.Path, this.Arguments, this.WorkingDirectory, this.Id);
+			return string.Format(Resources.ExecAction, this.Path, this.Arguments, this.WorkingDirectory, this.Id);
 		}
 	}
 
@@ -631,7 +632,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String represention this action.</returns>
 		public override string ToString()
 		{
-			return string.Format(Properties.Resources.EmailAction, this.Subject, this.To, this.Cc, this.Bcc, this.From, this.ReplyTo, this.Body, this.Server, this.Id);
+			return string.Format(Resources.EmailAction, this.Subject, this.To, this.Cc, this.Bcc, this.From, this.ReplyTo, this.Body, this.Server, this.Id);
 		}
 	}
 
@@ -703,7 +704,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String represention this action.</returns>
 		public override string ToString()
 		{
-			return string.Format(Properties.Resources.ShowMessageAction, this.Title, this.MessageBody, this.Id);
+			return string.Format(Resources.ShowMessageAction, this.Title, this.MessageBody, this.Id);
 		}
 	}
 }

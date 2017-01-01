@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Mygod.WifiShare</RootNamespace>
     <AssemblyName>Mygod无线网络共享</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -129,7 +129,7 @@
     <Compile Include="[References]\[TaskScheduler]\Native\ADVAPI32.cs" />
     <Compile Include="[References]\[TaskScheduler]\Native\WindowsImpersonatedIdentity.cs" />
     <Compile Include="[References]\[TaskScheduler]\NotV1SupportedException.cs" />
-    <Compile Include="[References]\[TaskScheduler]\Properties\Resources.Designer.cs">
+    <Compile Include="Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -154,8 +154,9 @@
     <Content Include="Main.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="app.manifest" />
-    <EmbeddedResource Include="[References]\[TaskScheduler]\Properties\Resources.resx">
+    <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

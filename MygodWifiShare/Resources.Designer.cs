@@ -8,8 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Win32.TaskScheduler.Properties
-{
+namespace Mygod.WifiShare {
     using System;
     
     
@@ -40,7 +39,7 @@ namespace Microsoft.Win32.TaskScheduler.Properties
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Mygod.WifiShare._References_._TaskScheduler_.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Mygod.WifiShare.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

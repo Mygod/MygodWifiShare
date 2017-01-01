@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+using Mygod.WifiShare;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -310,7 +311,7 @@ namespace Microsoft.Win32.TaskScheduler
 			if (this.Count == 1)
 				return this[0].ToString();
 			if (this.Count > 1)
-				return Properties.Resources.MultipleTriggers;
+				return Resources.MultipleTriggers;
 			return string.Empty;
 		}
 

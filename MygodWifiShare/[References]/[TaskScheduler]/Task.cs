@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Mygod.WifiShare;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -1953,7 +1954,7 @@ namespace Microsoft.Win32.TaskScheduler
 			{
 				if (v2Principal != null)
 					return v2Principal.Id;
-				return Properties.Resources.TaskDefaultPrincipal;
+				return Resources.TaskDefaultPrincipal;
 			}
 			set
 			{

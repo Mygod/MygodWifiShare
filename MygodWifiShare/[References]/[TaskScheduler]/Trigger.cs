@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
+using Mygod.WifiShare;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -685,15 +686,15 @@ namespace Microsoft.Win32.TaskScheduler
 			{
 				string sduration = string.Empty;
 				if (this.Repetition.Duration == TimeSpan.Zero)
-					sduration = Properties.Resources.TriggerDuration0;
+					sduration = Resources.TriggerDuration0;
 				else
-					sduration = string.Format(Properties.Resources.TriggerDurationNot0, GetBestTimeSpanString(this.Repetition.Duration));
-				ret.AppendFormat(Properties.Resources.TriggerRepetition, GetBestTimeSpanString(this.Repetition.Interval), sduration);
+					sduration = string.Format(Resources.TriggerDurationNot0, GetBestTimeSpanString(this.Repetition.Duration));
+				ret.AppendFormat(Resources.TriggerRepetition, GetBestTimeSpanString(this.Repetition.Interval), sduration);
 			}
 			if (this.EndBoundary != DateTime.MaxValue)
-				ret.AppendFormat(Properties.Resources.TriggerEndBoundary, AdjustToLocal(this.EndBoundary));
+				ret.AppendFormat(Resources.TriggerEndBoundary, AdjustToLocal(this.EndBoundary));
 			if (ret.Length > 0)
-				ret.Insert(0, Properties.Resources.HyphenSeparator);
+				ret.Insert(0, Resources.HyphenSeparator);
 			return ret.ToString();
 		}
 
@@ -804,7 +805,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			return Properties.Resources.TriggerBoot1;
+			return Resources.TriggerBoot1;
 		}
 	}
 
@@ -828,7 +829,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			return TaskScheduler.Properties.Resources.TriggerCustom1;
+			return Resources.TriggerCustom1;
 		}
 
 		/// <summary>
@@ -1117,8 +1118,8 @@ namespace Microsoft.Win32.TaskScheduler
 		protected override string V2GetTriggerString()
 		{
 			if (this.DaysInterval == 1)
-				return string.Format(Properties.Resources.TriggerDaily1, AdjustToLocal(this.StartBoundary));
-			return string.Format(Properties.Resources.TriggerDaily2, AdjustToLocal(this.StartBoundary), this.DaysInterval);
+				return string.Format(Resources.TriggerDaily1, AdjustToLocal(this.StartBoundary));
+			return string.Format(Resources.TriggerDaily2, AdjustToLocal(this.StartBoundary), this.DaysInterval);
 		}
 
 		System.Xml.Schema.XmlSchema IXmlSerializable.GetSchema()
@@ -1357,14 +1358,14 @@ namespace Microsoft.Win32.TaskScheduler
 			if (this.GetBasic(out log, out source, out id))
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.AppendFormat(Properties.Resources.TriggerEventBasic1, log);
+				sb.AppendFormat(Resources.TriggerEventBasic1, log);
 				if (!string.IsNullOrEmpty(source))
-					sb.AppendFormat(Properties.Resources.TriggerEventBasic2, source);
+					sb.AppendFormat(Resources.TriggerEventBasic2, source);
 				if (id.HasValue)
-					sb.AppendFormat(Properties.Resources.TriggerEventBasic3, id.Value);
+					sb.AppendFormat(Resources.TriggerEventBasic3, id.Value);
 				return sb.ToString();
 			}
-			return Properties.Resources.TriggerEvent1;
+			return Resources.TriggerEvent1;
 		}
 	}
 
@@ -1397,7 +1398,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			return Properties.Resources.TriggerIdle1;
+			return Resources.TriggerIdle1;
 		}
 	}
 
@@ -1488,8 +1489,8 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			string user = string.IsNullOrEmpty(this.UserId) ? Properties.Resources.TriggerAnyUser : this.UserId;
-			return string.Format(Properties.Resources.TriggerLogon1, user);
+			string user = string.IsNullOrEmpty(this.UserId) ? Resources.TriggerAnyUser : this.UserId;
+			return string.Format(Resources.TriggerLogon1, user);
 		}
 	}
 
@@ -1800,7 +1801,7 @@ namespace Microsoft.Win32.TaskScheduler
 			string ww = TaskEnumGlobalizer.GetString(this.WeeksOfMonth);
 			string days = TaskEnumGlobalizer.GetString(this.DaysOfWeek);
 			string months = TaskEnumGlobalizer.GetString(this.MonthsOfYear);
-			return string.Format(Properties.Resources.TriggerMonthlyDOW1, AdjustToLocal(this.StartBoundary), ww, days, months);
+			return string.Format(Resources.TriggerMonthlyDOW1, AdjustToLocal(this.StartBoundary), ww, days, months);
 		}
 
 		/// <summary>
@@ -2120,9 +2121,9 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			string days = string.Join(Properties.Resources.ListSeparator, Array.ConvertAll(this.DaysOfMonth, delegate(int i) { return i.ToString(); }));
+			string days = string.Join(Resources.ListSeparator, Array.ConvertAll(this.DaysOfMonth, delegate(int i) { return i.ToString(); }));
 			string months = TaskEnumGlobalizer.GetString(this.MonthsOfYear);
-			return string.Format(Properties.Resources.TriggerMonthly1, AdjustToLocal(this.StartBoundary), days, months);
+			return string.Format(Resources.TriggerMonthly1, AdjustToLocal(this.StartBoundary), days, months);
 		}
 
 		void WriteMyXml(System.Xml.XmlWriter writer)
@@ -2211,7 +2212,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			return Properties.Resources.TriggerRegistration1;
+			return Resources.TriggerRegistration1;
 		}
 	}
 
@@ -2507,10 +2508,10 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			string str = Properties.Resources.ResourceManager.GetString("TriggerSession" + this.StateChange.ToString());
-			string user = string.IsNullOrEmpty(this.UserId) ? Properties.Resources.TriggerAnyUser : this.UserId;
+			string str = Resources.ResourceManager.GetString("TriggerSession" + this.StateChange.ToString());
+			string user = string.IsNullOrEmpty(this.UserId) ? Resources.TriggerAnyUser : this.UserId;
 			if (this.StateChange != TaskSessionStateChangeType.SessionLock && this.StateChange != TaskSessionStateChangeType.SessionUnlock)
-				user = string.Format(Properties.Resources.TriggerSessionUserSession, user);
+				user = string.Format(Resources.TriggerSessionUserSession, user);
 			return string.Format(str, user);
 		}
 
@@ -2600,7 +2601,7 @@ namespace Microsoft.Win32.TaskScheduler
 		/// <returns>String describing the trigger.</returns>
 		protected override string V2GetTriggerString()
 		{
-			return string.Format(Properties.Resources.TriggerTime1, AdjustToLocal(this.StartBoundary));
+			return string.Format(Resources.TriggerTime1, AdjustToLocal(this.StartBoundary));
 		}
 	}
 
@@ -2787,7 +2788,7 @@ namespace Microsoft.Win32.TaskScheduler
 		protected override string V2GetTriggerString()
 		{
 			string days = TaskEnumGlobalizer.GetString(this.DaysOfWeek);
-			return string.Format(this.WeeksInterval == 1 ? Properties.Resources.TriggerWeekly1Week : Properties.Resources.TriggerWeeklyMultWeeks,
+			return string.Format(this.WeeksInterval == 1 ? Resources.TriggerWeekly1Week : Resources.TriggerWeeklyMultWeeks,
 				AdjustToLocal(this.StartBoundary), days, this.WeeksInterval);
 		}
 
